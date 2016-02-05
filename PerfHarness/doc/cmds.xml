@@ -1,0 +1,179 @@
+com.ibm.uk.hursley.perfharness.Log:
+Sets up JDK 1.4+ logging for the application.
+
+  st	Print full stack trace on error. (default: true)
+  vo	Verbosity level for logging.  Messages below this level will not be logged. (default: INFO)
+	This must be parsable by java.util.logging.Level.parse().
+
+com.ibm.uk.hursley.perfharness.Config:
+Centralises parsing, access and reporting of configuration parameters.
+
+  hx	Display help as XML. (default: false)
+  hs	Strict configuration checking. (default: true)
+	If true, this enables strict registration and checking of all
+	application parameters.
+  hm	Display detailed help on a specific module or modules. (default: )
+	Specify multiple modules as space-separated tokens.
+	Example: -hm "WebSphereMQ WBIMB"
+  hf	Display detailed help on current configuration. (default: false)
+  v	Show version. (default: false)
+  hp	Config properties filename. (default: )
+	Any values on the commandline take precedence over the contents of this file.
+  h	Display basic help on current configuration. (default: false)
+
+com.ibm.uk.hursley.perfharness.ControlThread:
+Manage the lifecycle of the application and any WorkerThreads.
+
+
+  so	Starts a socket shutdown thread on port specified (default: 0)
+	Starts thread listening on the port specified, if zero no thread started.
+	Once thread receives any data on socket a shutdown is signalled.
+  rl	Run length in seconds. (default: 60)
+	Setting this to 0 will disable the timer and run forever.
+  wi	WorkerThread start interval (ms). (default: 1000)
+	This controls the pause between starting multiple threads.
+  su	Display final summary. (default: true)
+	This setting is independent of the periodic statistics reporting.
+  wt	WorkerThread start timeout (s). (default: 30)
+	This controls the time to wait for any worker thread to start.
+  nt	Number of WorkerThreads. (default: 1)
+  id	Process identifier. (default: )
+	If set, this will be displayed in the statistics reporting.  This is
+	of use if you have to merge the output of more than one instance of the tool.
+  wk	Shutdown wait (s). (default: 120)
+	The application will wait this long for WorkerThreads to shutdown before
+	exiting anyway.
+  ct	ControlThread instance to invoke in this application. (default: ControlThread)
+  sh	Use signal handler to trap SIGINT (CTRL-C). (default: true)
+
+com.ibm.uk.hursley.perfharness.WorkerThread:
+Base class for all varieties of test.  This class implements a general pacing
+algorithm for those tests that wish to use it.  The performance overhead of this
+is minimal.
+
+  rp	Time period (s) to ramp up to the full rate. (default: 0)
+  df	Destination factory implementation. (default: DefaultDestinationFactory)
+	Currently, there is only one option.
+		DefaultDestinationFactory
+  mg	Fixed number of iterations to run. (default: 0)
+	The default setting of 0 means there is no iteration limit.
+  ln	Use a logarithmic distribution to "randomise" a fixed rate.  (default: false)
+  tc	Test definition class. (default: jms.r11.PutGet)
+	This defines the actual type of WorkerThreads that will be
+	started.  The selections listed are those packaged with this tool, there
+	may be others on the classpath that will not be shown here.
+		jms.r11.PutGet
+		jms.r11.Sender
+		jms.r11.Receiver
+		jms.r11.Requestor
+		jms.r11.Responder
+		jms.r11.Publisher
+		jms.r11.Subscriber
+		mqjava.PutGet
+		mqjava.Sender
+		mqjava.Receiver
+		mqjava.Requestor
+		mqjava.Responder
+  yd	Frequency to call Thread.yield(). (default: 0)
+	This may be of use if the WorkerThreads are not being evenly scheduled.
+	Note that enforcing fairness will impact overall performance.
+  rt	Desired rate (operations/sec). (default: 0)
+	If this rate is greater than the maximum achievable, the behaviour
+	is such that it runs as fast as possible.  A value of 0 means to
+	always run as fast as possible.  Rates of <1 op/sec are not currently possible.
+
+com.ibm.uk.hursley.perfharness.mqjava.Requestor:
+Puts a message to a queue then waits for a reply on another queue.  In contrast to the JMS
+classes, a new correlation-id is used for every request if -co is specified.
+
+  iq	Queue to place requests on. (default: REQUEST)
+  mm	New MQMessage object (default: 0)
+	If this value is >0 then for each MQ get a new MQMessage object is instantiated
+  wo	Number of messages sent before a reponse message is written to a file (default: 0)
+	If this value is >0 then each client thread will write a response
+	message to a file in the current dir called threadname.reponsemsg
+  oq	Queue to place replies on. (default: REPLY)
+  mdm	Minimum numeric value to be appended to multi-destination queue names (default: 2)
+	If a multi-destination index is less than this value, then it will
+	not be appended to the input/output queue names. I.e., if this value is set to
+	2 and the multi-destination numbering goes from 1 to 3, then the actual queue
+	names used will be <inputqueue>, <outputqueue>, <intputqueue>2, <outputqueue>2,
+	<inputqueue>3, <outputqueue>3. If the value 1 is used for the same numbering,
+	the first pair of queues used will be <inputqueue>1 and <outputqueue>1.
+  qm	Reply to  QueueManager to put messages to, replies will be local. (default: )
+
+com.ibm.uk.hursley.perfharness.mqjava.MQProvider:
+Provides access to WebSphere MQ classes for Java
+
+  jh	Host to connect to. (default: localhost)
+  tx	Transactionality. (default: false)
+  me	MQ Message Encoding.  This value is set on the MQ Message in the MQMessage.encodingfield field. (default: 546)
+  pp	Use persistent messages. (default: false)
+  to	Polling timeout on receiving messages (0 means forever). (default: 5)
+	Threads will not stop if this timeout occurs, it simply the polling interval.
+	Note that when using a value of 0, the tool probably won't exit cleanly.
+  bf	Force MQOO_BIND_NOT_FIXED for clusters. (default: false)
+	This is normally done by changing the queue definition to DEFBIND(NOTFIXED).
+  ir	input to out put ratio, default =1  e.g. 3 means send 3 then get 1. (default: 1)
+  or	output to input ratio, default =1  e.g. 3 means put 1 then get 3 msgs, can used for pubsub fan out. (default: 1)
+  jc	WMQ Channel to connect to. (default: SYSTEM.DEF.SVRCONN)
+  jp	Port to connect to. (default: 1414)
+  co	Use correlation-id on requests. (default: false)
+	This will use the correlation-id per message model (unlike the JMS classes in this tool).
+  ms	Message size in bytes. (default: 1000)
+  mi	Use msg-id on requests. (default: false)
+	This will use the msg-id received by the put() on the get() on a per thread basis.
+  ws	Write last response message to the screen on shutdown (default: 0)
+	If this value is >0 then each client thread will write the last response message received to the screen on shutdown.
+  mq	MQ message format. This value is set on the MQ Message in the MQMessage.format field. (default: MQSTR)
+	The value set should be the actual string that is the constant in the MQC.MQFMT* class, 
+	 For example to specify MQC.MQFMT_TRIGGER then set -mq MQTRIG  
+  jt	WMQ transport (mqb, mqbf, mqc). (default: mqc)
+	"mqb" is local-bindings connections, "mqbf" is local fastpath connections,
+	"mqc" is TCP/IP connections.
+  rf	Use RFH Header from msg file, as produced by RFHUtil.  (default: 0)
+	"rf" value of 1 means read as RFH1 header (MQC.MQFMT_RF_HEADER_1), 
+	Value of 2 means RFH2 header (MQC.MQFMT_RF_HEADER_2).
+  cv	Correlation ID value. (default: )
+  mc	MQ Message Character Set.  This value is set on the MQ Message in the MQMessage.characterSet field. (default: 1208)
+  jl	SSLCipherSuite name (default: )
+	This controls the SSL encryption methodology.  RTFM or developerWorks for details.
+  mf	External file to use as message contents. (default: )
+  jb	WMQ queue manager to connect to. (default: QM)
+
+com.ibm.uk.hursley.perfharness.DefaultDestinationFactory:
+Defines the allocation of destinations amongst multiple WorkerThreads.
+These options only control the *names* given to destination and it is up
+to the WorkerThread implementation how these names are interpreted.
+
+  db	Multi-destination numeric base. (default: 0)
+  dx	Multi-destination numeric maximum. (default: 0)
+  dn	Multi-destination numeric range. (default: 0)
+	If both base and maximum are set, this value is taken to be the starting
+	point (as opposed to base).
+  d	Destination prefix. (default: DEST)
+	If no other destination parameters are set, then nothing will be appended to this.
+
+com.ibm.uk.hursley.perfharness.stats.Statistics:
+  ss	Statistics reporting period. (default: 10)
+	Setting this to 0 will disable periodic reporting entirely.
+  sp	Display per-thread iteration counts. (default: false)
+	The infomation given per thread is the number of iterations (not a
+	rate/sec) in the reporting period.
+  sw	Statistical discard period (seconds). (default: 0)
+	The given warmup period is excluded from the calculations of
+	final summary.
+  sc	Statistics module to use - options are BasicStats, ResponseTimeStats or RollingAvgStats. (default: RollingAvgStats)
+	
+  sd	Sets what is reported as totalDuration. (default: normal)
+	"normal" = from 1st iteration to last iteration, excluding setup/takedown.
+	"tlf" = Time to Last Fire, from start of main thread till last iteration completes
+	(includes setup time but not takedown).
+
+com.ibm.uk.hursley.perfharness.stats.RollingAvgStats:
+  sr	Rolling average period (seconds). (default: 30)
+	Performance is sampled every second, the number reported is the
+	average over the last rolling average period.  During the first period, the
+	figure reported is the average over the actual number of seconds elapsed. 
+
+

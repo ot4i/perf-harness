@@ -1,0 +1,329 @@
+<?xml version="1.0"?>
+<!-- ***************************************************** {COPYRIGHT-TOP} ***
+	* Licensed Materials - Property of IBM
+	* Performance Harness for Java Message Service
+	*
+	* (C) Copyright IBM Corp. 2006
+	*
+	* US Government Users Restricted Rights - Use, duplication, or
+	* disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+	********************************************************** {COPYRIGHT-END} -->
+
+<project name="ant-perfharness-common" default="-init">
+
+	<target name="-init" >
+		
+		<!-- Any of the following values can be overriden by settings placed before the <import>
+		 in the lead project -->		
+		<property name="src.dir" value="src" />
+		<property name="dest.dir" value="bin" />
+		<property name="build.dir" value="build" />
+		<property name="doc.dir" value="doc" />
+		<property name="version.file" value="VERSION.txt" />
+		<property name="build.file" value="${src.dir}/com/ibm/uk/hursley/perfharness/build.properties" />
+		
+		<property name="short.name" value="${ant.project.name}" />
+		<property name="jar.name" value="${short.name}.jar" />
+		<property name="jar.file" value="${build.dir}/${jar.name}" />
+		<property name="zip.file" value="${build.dir}/${short.name}.zip" />
+		<property name="srczip.file" value="${build.dir}/${short.name}-src.zip" />	
+
+		<property name="javadoc.id" value="${short.name}-api" />
+		<property name="javadoc.dir" value="${doc.dir}/${javadoc.id}" />
+		<property name="javadoc.file" value="${doc.dir}/${javadoc.id}.zip" />	
+
+		<!-- Order of modules is important - precedence is given to the left when names overlap -->
+		<property name="perfharness.modules" value="JMSPerfHarness MQJavaPerfHarness MQTTPerfHarness HTTPPerfHarness PerfHarness" />
+
+		
+		<property name="copyright.name" value="PerfHarness" />
+		<!-- The Java file which holds latest copyright -->
+		<property name="copyright.file" value="${basedir}/../PerfHarness/src/com/ibm/uk/hursley/perfharness/Copyright.java" />
+		<!-- A directory with COD definitions in -->
+		<property name="copyright.dir" location="copyrights" />
+		<property name="copyright.version" value="0" />
+		<available property="copyright.exists" file="${copyright.file}" />
+		<available property="copyrights.exist" file="${copyright.dir}" />
+		
+		<tstamp>
+			<format  property="bld.timestamp"  pattern="yyyyMMdd_HHmm" />
+			<format  property="bld.year"       pattern="yyyy" />
+		</tstamp>
+		
+		
+		<!-- First compile the Perfharness classes -->
+    	<javac srcdir="../PerfHarness/src"	
+    		destdir="../PerfHarness/bin" 
+    		classpath="${basedir}/../PerfHarnessPrereqs/PCounters/pcounters.jar"/>
+		<jar destfile="./perfharness.jar" basedir="../PerfHarness/bin" />
+		
+        <path id="build-classpath">   
+        	<fileset dir=".">
+				<include name="**/**.jar"/>
+       		</fileset>
+        	<fileset dir="../PerfHarnessPrereqs">           	
+        		<include name="IBM_WMQ_8/**.jar"/>
+        	</fileset>
+        	<fileset dir="../PerfHarnessPrereqs">           	
+        		<include name="**/**.jar"/>
+       		</fileset>
+        	<fileset dir="../PerfHarnessPrereqs/">           	
+        		<include name="**/**.jar"/>
+        	</fileset>
+        </path>
+			
+        <path id="build-classpath-mqtt">   
+            <fileset dir="../MQTTPerfHarness">           	
+            	<include name="**/**.jar"/>
+            </fileset>
+        </path> 
+		
+		<mkdir dir="${dest.dir}" />		
+    	<javac srcdir="${src.dir}"	destdir="${dest.dir}">
+        	<classpath refid="build-classpath"/>
+		</javac>
+		
+		<javac srcdir="../MQJavaPerfHarness/src"	destdir="../MQJavaPerfHarness/bin">
+		    <classpath refid="build-classpath"/>
+		</javac>
+    		
+    	<javac srcdir="../HTTPPerfHarness/src"	destdir="../HTTPPerfHarness/bin">
+    		<classpath refid="build-classpath"/>
+    	</javac>
+		
+		<javac srcdir="../JMSPerfHarness/src"	destdir="../JMSPerfHarness/bin">
+			<classpath refid="build-classpath"/>
+		</javac>
+		
+		<verifymodules modules="${perfharness.modules}" />
+		
+		<deletejarmodules modules="${perfharness.modules}" />
+		
+	</target>
+	
+	<!-- 
+		# To include this library file, your <project> must contain the following two elements
+		<property name="perfharness.dir" location="../PerfHarness" />
+		<import file="${perfharness.dir}/ant-perfharness-common.xml" />
+	-->
+
+	<!--
+		# We need antlib to provide <for> task.  The jar is included in the PerfHarness root directory
+	-->
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="${perfharness.dir}/../PerfHarnessPrereqs/ant-contrib.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- 
+	    # We use SVN to extract precise build numbers for use in project version identifiers.
+	-->
+	<taskdef resource="svntask.properties">
+		<classpath>
+			<pathelement location="${perfharness.dir}/svnant.jar" />
+			<pathelement
+				location="${perfharness.dir}/svnClientAdapter.jar" />
+			<pathelement location="${perfharness.dir}/svnjavahl.jar" />
+		</classpath>
+	</taskdef>
+
+	<!--
+		# Create a jar file from the given module names. Order is important, any
+		# duplicate files are taken from the later modules.
+	-->
+	<macrodef name="jarmodules">
+		<attribute name="jar" />
+		<attribute name="modules" />
+		<sequential>
+			<delete verbose="true" file="@{jar}" />
+			<jar jarfile="@{jar}" compress="true" update="true">
+				<manifest>
+					<attribute name="Built-By" value="${user.name}" />
+					<section name="com/ibm/uk/hursley/perfharness">
+						<attribute name="Specification-Title"
+							value="${copyright.name}" />
+						<attribute name="Specification-Version"
+							value="${copyright.version}" />
+						<attribute name="Specification-Vendor"
+							value="IBM" />
+						<attribute name="Implementation-Title"
+							value="com.ibm.uk.hursley.perfharness" />
+						<attribute name="Implementation-Vendor"
+							value="IBM" />
+					</section>
+				</manifest>
+			</jar>
+			<for list="@{modules}" param="module" delimiter=", \t">
+				<sequential>
+					<echo>Including @{module}</echo>
+					<jar jarfile="@{jar}" compress="true"
+						update="true">
+						<fileset dir="../@{module}/${dest.dir}"
+							includes="**/*.class" />
+						<fileset dir="../@{module}/${src.dir}"
+							includes="**/*.properties" />
+					</jar>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<!-- 
+		# Create a single directory with all of the given source files in. Order
+		# is important, any duplicate files are taken from the latter modules.
+	-->
+	<macrodef name="zipsrcmodules">
+		<attribute name="zip" />
+		<attribute name="modules" />
+		<sequential>
+			<delete verbose="true" file="@{zip}" />
+			<zip update="true" zipfile="@{zip}">
+				<zipfileset prefix="${short.name}" dir="." includes="${version.file}" />
+			</zip>
+			<for list="@{modules}" param="module" delimiter=", \t">
+				<sequential>
+					<echo>Including @{module}</echo>
+					<zip update="true" zipfile="@{zip}">
+						<zipfileset prefix="${short.name}/src" dir="../@{module}/${src.dir}">
+							<include name="**/*.java" />
+							<include name="**/*.properties" />
+						</zipfileset>
+					</zip>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<!--
+		# Verify the given module names exist
+	-->
+	<macrodef name="verifymodules">
+		<attribute name="modules" />
+		<sequential>
+			<for list="@{modules}" param="module" delimiter=", \t">
+				<sequential>
+					<available file="../@{module}" type="dir"
+						property="@{module}.exists" />
+					<fail
+						message="@{module} cannot be found in your workspace."
+						unless="@{module}.exists" />
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="deletejarmodules">
+		<attribute name="modules" />
+		<sequential>
+			<for list="@{modules}" param="module" delimiter=", \t">
+				<sequential>
+			        <path id="jarfile">   
+			        	<fileset dir="../@{module}">
+							<include name="**/*"/>
+			       		</fileset>
+			        </path>
+					<pathconvert property="jarfileProp" refid="jarfile"/>
+
+					<echo>File is ${jarfileProp}</echo>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+
+	
+	<target name="-version">
+		<echo file="${version.file}"
+>Name : ${copyright.name}
+Version : ${copyright.version}
+Build : ${bld.id}
+</echo>
+		<echo file="${build.file}"
+>build.name=${copyright.name}
+build.version=${copyright.version}
+build.id=${bld.id}
+</echo>
+	</target>
+	
+	<!--
+	 # Common ANT targets
+	-->
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: javadoc
+          TODO: THIS IS NO LONGER UP TO DATE.  Either a) unpack src-zip to tmp directory and javadoc THAT
+          or b) write a macro that iterates over modules 
+          I beleive a) is the correct direction to go.
+         - - - - - - - - - - - - - - - - - -->
+	<target name="javadoc" depends="-init, jar">
+		
+		<property name="jms.file" value="jms.jar" />
+		<path id="build.class.path">
+		    <pathelement path="${jar.file}/" />
+			<pathelement path="${jms.file}/" />
+		</path>
+		
+		<delete file="${javadoc.file}" />
+		<delete dir="${javadoc.dir}" />
+		
+		<javadoc destdir="${javadoc.dir}" author="true" version="true" use="true" classpathref="build.class.path" windowtitle="Test API">
+
+			<packageset dir="src" defaultexcludes="yes">
+				<include name="com/ibm/**" />
+				<include name="../PerfHarness/src/com/ibm/**" />
+				<include name="../MQJavaPerfHarness/src/com/ibm/**" />
+			</packageset>
+
+			<doctitle>PerfHarness API documentation</doctitle>
+			<bottom>Copyright &#169; ${bld.year} IBM. All Rights Reserved.</bottom>
+		</javadoc>
+		
+		<zip zipfile="${javadoc.file}" compress="true" basedir="${doc.dir}" includes="${javadoc.id}/**" />
+		
+	</target>
+	
+	<target name="-package-src" depends="-init, -version, jar">
+		<zipsrcmodules zip="${srczip.file}" modules="${perfharness.modules}"/>
+	</target>
+	
+	<target name="jar" depends="-init, -version" description="Make a jar file">
+		<jarmodules jar="${jar.file}" modules="${perfharness.modules}" />
+	</target>
+
+	<target name="-unknown-build">
+		<property name="bld.id" value="Unknown"/>
+	</target>
+	
+	<target name="jar-quick" depends="-unknown-build,jar" description="Make a jar quickly.  Do not use this for releases!">
+		
+		
+	</target>
+
+	<target name="clean" depends="-init">
+		<delete verbose="true" includeemptydirs="true">
+			<fileset dir="${dest.dir}">
+				<include name="**/*.*" />				
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${build.dir}">
+				<include name="**/*.*" />				
+				<include name="**/*" />
+			</fileset>
+			
+		</delete>
+	</target>
+	
+	<target name="package" depends="-package-binary, -package-src" description="Make all binaries"/>
+
+	<target name="-package-binary" depends="-init, -version, jar">
+		<delete verbose="true" file="${zip.file}" />
+		<zip zipfile="${zip.file}">
+			<zipfileset prefix="${short.name}" dir="${doc.dir}" includes="*" />
+			<zipfileset prefix="${short.name}" dir="." includes="${version.file}" />
+			<zipfileset prefix="${short.name}" dir="${build.dir}" includes="${jar.name}" />
+			<zipfileset prefix="${short.name}/license" dir="license" />
+		</zip>
+	</target>
+
+</project>

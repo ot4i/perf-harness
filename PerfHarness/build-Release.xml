@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- ***************************************************** {COPYRIGHT-TOP} ***
+* Licensed Materials - Property of IBM
+* Performance Harness for Java Message Service
+*
+* (C) Copyright IBM Corp. 2005, 2006, 2007, 2008
+*
+* US Government Users Restricted Rights - Use, duplication, or
+* disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+********************************************************** {COPYRIGHT-END} -->
+<project name="jmsperfharness" default="package" basedir=".">
+
+	<!-- This is used to name the various generated files -->
+	<property name="short.name" value="PerfHarness" />
+
+	<!-- Order of modules is important - precedence is given to the left when names overlap -->
+	<property name="perfharness.modules" value="JMSPerfHarness MQJavaPerfHarness HTTPPerfHarness PerfHarness" />
+
+	<!-- This is the name by which the packaged code will identify itself -->
+	<property name="copyright.name" value="PerfHarness" />
+	
+	<property name="copyright.version" value="1.0" />
+	
+	<tstamp>
+	      <format property="TIMESTAMP" pattern="yyyyMMdd-HHmmss" locale="en,UK"/>
+	</tstamp>
+	
+	<property name="bld.id" value="${TIMESTAMP}" />
+	
+	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
+	<property name="perfharness.dir" location="../PerfHarness" />
+	<import file="${perfharness.dir}/ant-perfharness-common.xml" />
+
+	<target name="package-github" depends="-package-binary" description="Make GitHub release with licenses">
+		<zip zipfile="${zip.file}" update="true">
+			<zipfileset prefix="${short.name}/license" dir="license" />
+		</zip>
+	</target>
+	
+</project>
