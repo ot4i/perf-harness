@@ -32,10 +32,6 @@
 		<property name="javadoc.dir" value="${doc.dir}/${javadoc.id}" />
 		<property name="javadoc.file" value="${doc.dir}/${javadoc.id}.zip" />	
 
-		<!-- Order of modules is important - precedence is given to the left when names overlap -->
-		<property name="perfharness.modules" value="JMSPerfHarness MQJavaPerfHarness MQTTPerfHarness HTTPPerfHarness PerfHarness" />
-
-		
 		<property name="copyright.name" value="PerfHarness" />
 		<!-- The Java file which holds latest copyright -->
 		<property name="copyright.file" value="${basedir}/../PerfHarness/src/com/ibm/uk/hursley/perfharness/Copyright.java" />
@@ -50,81 +46,43 @@
 			<format  property="bld.year"       pattern="yyyy" />
 		</tstamp>
 		
+		<!-- Define the build classpath -->
+		<path id="build-classpath">   
+			<fileset dir=".">
+				<include name="**/**.jar"/>
+			</fileset>
+			<fileset dir="../PerfHarnessPrereqs">           	
+				<include name="IBM_WMQ_8/**.jar"/>
+			</fileset>
+			<fileset dir="../PerfHarnessPrereqs">           	
+				<include name="**/**.jar"/>
+			</fileset>
+			<fileset dir="../PerfHarnessPrereqs/">           	
+				<include name="**/**.jar"/>
+			</fileset>
+			<pathelement path="../PerfHarness/${dest.dir}"/>
+		</path>
 		
 		<!-- First compile the Perfharness classes -->
-    	<javac srcdir="../PerfHarness/src"	
-    		destdir="../PerfHarness/bin" 
-    		classpath="${basedir}/../PerfHarnessPrereqs/PCounters/pcounters.jar"/>
-		<jar destfile="./perfharness.jar" basedir="../PerfHarness/bin" />
-		
-        <path id="build-classpath">   
-        	<fileset dir=".">
-				<include name="**/**.jar"/>
-       		</fileset>
-        	<fileset dir="../PerfHarnessPrereqs">           	
-        		<include name="IBM_WMQ_8/**.jar"/>
-        	</fileset>
-        	<fileset dir="../PerfHarnessPrereqs">           	
-        		<include name="**/**.jar"/>
-       		</fileset>
-        	<fileset dir="../PerfHarnessPrereqs/">           	
-        		<include name="**/**.jar"/>
-        	</fileset>
-        </path>
-			
-        <path id="build-classpath-mqtt">   
-            <fileset dir="../MQTTPerfHarness">           	
-            	<include name="**/**.jar"/>
-            </fileset>
-        </path> 
-		
-		<mkdir dir="${dest.dir}" />		
+       	<mkdir dir="${dest.dir}" />		
     	<javac srcdir="${src.dir}"	destdir="${dest.dir}">
         	<classpath refid="build-classpath"/>
 		</javac>
 		
-		<javac srcdir="../MQJavaPerfHarness/src"	destdir="../MQJavaPerfHarness/bin">
-		    <classpath refid="build-classpath"/>
-		</javac>
-    		
-    	<javac srcdir="../HTTPPerfHarness/src"	destdir="../HTTPPerfHarness/bin">
-    		<classpath refid="build-classpath"/>
-    	</javac>
-		
-		<javac srcdir="../JMSPerfHarness/src"	destdir="../JMSPerfHarness/bin">
-			<classpath refid="build-classpath"/>
-		</javac>
-		
 		<verifymodules modules="${perfharness.modules}" />
+		
+		<buildmodules modules="${perfharness.modules}" />
 		
 		<deletejarmodules modules="${perfharness.modules}" />
 		
 	</target>
 	
-	<!-- 
-		# To include this library file, your <project> must contain the following two elements
-		<property name="perfharness.dir" location="../PerfHarness" />
-		<import file="${perfharness.dir}/ant-perfharness-common.xml" />
-	-->
-
 	<!--
 		# We need antlib to provide <for> task.  The jar is included in the PerfHarness root directory
 	-->
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
 			<pathelement location="${perfharness.dir}/../PerfHarnessPrereqs/ant-contrib.jar" />
-		</classpath>
-	</taskdef>
-
-	<!-- 
-	    # We use SVN to extract precise build numbers for use in project version identifiers.
-	-->
-	<taskdef resource="svntask.properties">
-		<classpath>
-			<pathelement location="${perfharness.dir}/svnant.jar" />
-			<pathelement
-				location="${perfharness.dir}/svnClientAdapter.jar" />
-			<pathelement location="${perfharness.dir}/svnjavahl.jar" />
 		</classpath>
 	</taskdef>
 
@@ -231,8 +189,27 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="buildmodules">
+		<attribute name="modules" />
+		<sequential>
+			<for list="@{modules}" param="module" delimiter=", \t">
+				<sequential>
+					<available file="../@{module}" type="dir"
+						property="@{module}.exists" />
+					<fail
+						message="@{module} cannot be found in your workspace."
+						unless="@{module}.exists" />
+					<!-- delete dir="../@{module}/${dest.dir}" / -->
+					<mkdir dir="../@{module}/${dest.dir}" />
+					<javac srcdir="../@{module}/src" destdir="../@{module}/bin">
+						<classpath refid="build-classpath"/>
+					</javac>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
 
-	
+
 	<target name="-version">
 		<echo file="${version.file}"
 >Name : ${copyright.name}
