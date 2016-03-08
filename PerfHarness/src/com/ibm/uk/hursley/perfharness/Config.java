@@ -48,16 +48,16 @@ import com.ibm.uk.hursley.perfharness.util.TypedPropertyException;
  * <li>Short and long help descriptions are available.</li>
  * <li>Each module is partially self documenting through the use of
  * descriptions and "xtra" descriptions (used with the full output)</li>
- * <li>Unassociated modules may independantly use the same parameter but with
+ * <li>Unassociated modules may independently use the same parameter but with
  * different meanings.</li>
  * <li>All loaded modules are verified such that no active parameter is
  * duplicated and no redundant parameters are left on the command line.</li>
  * <li>The help system gives help for the current context (thereby hiding
- * unused and uneccessary modules)</li>
+ * unused and unnecessary modules)</li>
  * <li>The help system allows specific modules to be described (if requested).
  * </li>
- * <li>Paremeters may have defaults.</li>
- * <li>Defaults may be overidden by subclasses of a module.</li>
+ * <li>Parameters may have defaults.</li>
+ * <li>Defaults may be overridden by subclasses of a module.</li>
  * <li>Parameters from one module may be used by other sub-modules.</li>
  * <li>Parameters may be validated for syntax errors before the program begins
  * operation</li>
@@ -88,12 +88,11 @@ import com.ibm.uk.hursley.perfharness.util.TypedPropertyException;
  * <li>Each class should call {@link Config#registerAnother(Class)}for all
  * logical "child" classes which need registering.</li>
  * </ul>
- * Adhereing to these requirements requires vigilance!. Check out the JMS code
+ * Adhering to these requirements requires vigilance!. Check out the JMS code
  * to learn by example.
  * 
  */
 public final class Config {
-
 	@SuppressWarnings("unused")
 	private static final String c = Copyright.COPYRIGHT;
 	
@@ -125,31 +124,26 @@ public final class Config {
 	 * The public properties for this application.  This field is <i>public</i> for simplicity but <i>final</i> as
 	 * this means it cannot be subverted by poor programming.
 	 */	
-	public final static TypedProperties parms = new TypedProperties( parmsInternal );
+	public final static TypedProperties parms = new TypedProperties(parmsInternal);
 
 	// commandline
 	private static final int INITIAL = 0;
-
-	private static final int LOADING = 1; // we have read command line are
-											// loading modules
-
-	private static final int LOADED = 2; // All current modules loaded
+	private static final int LOADING = 1;	// we have read command line, are loading modules
+	private static final int LOADED = 2;	// all current modules loaded
 
 	private static int configState = INITIAL;
 
 	private static boolean invalid = false; // is the configuration invalid
-	
+
 	private static boolean asXML = false;
 
 	private static boolean userConfigSupplied = false;
 
 	private static final class ConfigFormatter extends PrependFormatter {
 		private boolean squashExceptions = false;
-
 		public ConfigFormatter() {
 			super("Invalid parameter: ");
 		}
-
 		public String format(LogRecord record) {
 			invalid = true;
 			if (squashExceptions) {
@@ -157,11 +151,9 @@ public final class Config {
 			}
 			return super.format(record);
 		}
-
 		public void setSquashExceptions(boolean squash) {
 			this.squashExceptions = squash;
 		}
-
 	}
 
 	/**
@@ -178,47 +170,36 @@ public final class Config {
 	 *            the class being registered
 	 */
 	public synchronized static void registerSelf(Class<?> class1) {
-
 		if (Log.logger.isLoggable(Level.FINEST)) {
 			Log.logger.finest("Config is registering " + class1.getName());
 		}
 
 		switch (configState) {
 		case LOADED:
-			Log.logger.severe("Module " + class1.getName()
-					+ " tried to register too late.");
+			Log.logger.severe("Module " + class1.getName() + " tried to register too late.");
 			break;
 		case INITIAL:
-			Log.logger
-					.severe("Command line has not been successfully read and we are trying to register "
-							+ class1.getName());
+			Log.logger.severe("Command line has not been successfully read and we are trying to register " + class1.getName());
 			break;
 		}
 
 		if (!isRegistered(class1)) {
 			try {
-
-				ResourceBundle bundle = ResourceBundle.getBundle(class1
-						.getName());
+				final ResourceBundle bundle = ResourceBundle.getBundle(class1.getName());
 
 				// ...add it to the list of modules
 				regModules.put(class1.getName(), bundle);
 
 				// Read in options for module
 				registerProperties(class1, bundle);
-
-			} catch (MissingResourceException e) {
-
-					Log.logger.log(Level.FINEST,
-						"Config found no resource bundle for {0}", class1
-								.getName());
-					
-			} catch (Exception e) {
-				logger.log(Level.SEVERE,
-						"Error processing resource bundle for " + class1.getName(), e);
+			}
+			catch (MissingResourceException e) {
+					Log.logger.log(Level.FINEST, "Config found no resource bundle for {0}", class1.getName());
+			}
+			catch (Exception e) {
+				logger.log(Level.SEVERE, "Error processing resource bundle for " + class1.getName(), e);
 			}
 		} // end if ! isRegistered
-
 	}
 
 	/**
@@ -249,9 +230,7 @@ public final class Config {
 	 *            Class to register
 	 */
 	public synchronized static <T> void registerAnother(Class<T> clazz) {
-
 		try {
-
 			// (Recursively) register an unregistered superclass first
 			Class<? super T> parent = clazz.getSuperclass();
 			if (parent != Object.class && !isRegistered(parent)) {
@@ -260,27 +239,22 @@ public final class Config {
 
 			// Find and invoke "public static void registerConfig()" if it
 			// exists
-			Method m = clazz
-					.getDeclaredMethod("registerConfig", (Class[]) null);
+			Method m = clazz.getDeclaredMethod("registerConfig", (Class[])null);
 			if (Modifier.isStatic(m.getModifiers())) {
-				m.invoke((Object) null, (Object[]) null);
+				m.invoke((Object)null, (Object[])null);
 			} else {
-				logger.log(Level.SEVERE, "Method {0} on {1} is not static",
-						new Object[]{m.getName(), clazz.getName()});
+				logger.log(Level.SEVERE, "Method {0} on {1} is not static", new Object[]{m.getName(), clazz.getName()});
 			}
-
-		} catch (NoSuchMethodException e) {
-			// swallowed
-		} catch (InvocationTargetException e) {
-			logger.log(Level.WARNING,
-					"Error attempting Config registration of "
-							+ clazz.getName(), e.getCause());
-		} catch (Exception e) {
-			logger.log(Level.WARNING,
-					"Error attempting Config registration of "
-							+ clazz.getName(), e);
 		}
-
+		catch (NoSuchMethodException e) {
+			// swallowed
+		}
+		catch (InvocationTargetException e) {
+			logger.log(Level.WARNING, "Error attempting Config registration of " + clazz.getName(), e.getCause());
+		}
+		catch (Exception e) {
+			logger.log(Level.WARNING, "Error attempting Config registration of " + clazz.getName(), e);
+		}
 	}
 
 	/**
@@ -289,17 +263,14 @@ public final class Config {
 	 * @param bundle
 	 * @return A Collections API version of the ResourceBundle.
 	 */
-	private static Map<String,String> resourceBundleMap( ResourceBundle bundle ) {
-		
-		final HashMap<String,String> map = new HashMap<String,String>();
-		
+	private static Map<String,String> resourceBundleMap(ResourceBundle bundle) {
+		final HashMap<String,String> map = new HashMap<String, String>();
 		final Enumeration<String> e = bundle.getKeys();
 		while (e.hasMoreElements()) {
 			final String key = e.nextElement();
-			map.put( key, (String)bundle.getObject(key) );
+			map.put(key, (String)bundle.getObject(key));
 		}
 		return Collections.unmodifiableMap(map);
-
 	}
 
 	/**
@@ -310,49 +281,38 @@ public final class Config {
 	 * @param regdata
 	 */
 	private static void registerProperties(Class<?> clazz, ResourceBundle bundle) {
-
 		final Map<String, String> bundleMap = resourceBundleMap(bundle);
 		final Iterator<Map.Entry<String, String>> iter = bundleMap.entrySet().iterator();
-
 		while (iter.hasNext()) {
-
 			final Map.Entry<String, String> entry = iter.next();
 			final String key = entry.getKey(); // eg hq.dflt
-			final String property = key.substring(0,key.length()-5); // eg hq
+			final String property = key.substring(0, key.length() - 5); // eg hq
 			
-			// Only process the .dflt items, the rest can be delivered from their resource bundles			
-			if ( key.endsWith( ".dflt" ) ) {
-				
-				final String longKey = bundleMap.get(property+".long"); // eg. headquarters
+			// Only process the .dflt items, the rest can be delivered from their resource bundles
+			if (key.endsWith(".dflt")) {
+				final String longKey = bundleMap.get(property + ".long"); // eg. headquarters
 				final String value = entry.getValue(); // eg 10
-				
+
 				// Has this property already been registered?
 				if (parmsInternal.get(property) != null) {
-
 					// Find the class that owns this property
 					final String classname = findFirstClassOwningProperty(property);
-
 					if (classname == null) {
 						// No previous owner ?!
 						// Must be an application-specified property that has
 						// been set very early on.
 
-						// This shouldn't be neccessary, so print a warning
+						// This shouldn't be necessary, so print a warning
 						// message for developers.
-						logger
-								.log(
-										Level.WARNING,
-										"Property [{0}] has been overridden before it was even registered.",
-										property);
+						logger.log(Level.WARNING, "Property [{0}] has been overridden before it was even registered.", property);
 						// Backfill anyway
-						parmsInternal
-								.putDefaultString(property, longKey, value);
-
+						parmsInternal.putDefaultString(property, longKey, value);
 					} else {
 						Class<?> c = null;
 						try {
 							c = Class.forName(classname);
-						} catch (ClassNotFoundException e) {
+						}
+						catch (ClassNotFoundException e) {
 							// No op (impossible state)
 						}
 
@@ -361,37 +321,25 @@ public final class Config {
 							// ... Yes, overwrite parameter defaults (this is
 							// not considered as an application
 							// specified property). Done anyway later on!
-							parmsInternal.putDefaultString(property, longKey,
-									value);
+							parmsInternal.putDefaultString(property, longKey, value);
 						} else {
 							// ... No, error
-							logger
-									.log(
-											Level.WARNING,
-											"Property [{0}] exists twice in ResourceBundles",
-											property);
+							logger.log(Level.WARNING, "Property [{0}] exists twice in ResourceBundles", property);
 							// Keep going and try to validate remaining
 							// parameters
-
 						} // end if isassignable
-
 					} // end if classname
-
 				} else { // end if getproperty
 
 					// Property has not been registered is a new default
 					// property, just add it in
 					parmsInternal.putDefaultString(property, longKey, value);
-
 				}
 
 				// Does parameter pass type-checking etc
 				checkParameterIsValid(bundle, property);
-
 			} // end if dflt
-
 		} // end while keys
-
 	}
 
 	/**
@@ -404,46 +352,44 @@ public final class Config {
 	 * @param key
 	 * @return True if the named parameter passes some basic syntax checking.
 	 */
-	private static boolean checkParameterIsValid(ResourceBundle bundle,
-			String key) {
-
+	private static boolean checkParameterIsValid(ResourceBundle bundle, String key) {
 		// This call will get the effective setting whether from defaults,
 		// command line or property file
-		String value = parms.getString(key);
-
+		final String value = parms.getString(key);
 		try {
-
 			// Get declared type
-			String type = bundle.getString(key + ".type");
+			final String type = bundle.getString(key + ".type");
 
 			// Test parsing with relevant class
-			if ("java.lang.Boolean".equals(type)) {
+			if ("java.lang.Boolean".equals(type))
 				parms.getBoolean(key);
-			} else if ("java.lang.Integer".equals(type)) {
+			else
+			if ("java.lang.Integer".equals(type))
 				parms.getInt(key);
-			} else if ("java.lang.Long".equals(type)) {
+			else
+			if ("java.lang.Long".equals(type))
 				parms.getLong(key);
-			} else if ("java.lang.Double".equals(type)) {
+			else
+			if ("java.lang.Double".equals(type))
 				parms.getDouble(key);
-			} else if ("java.lang.String".equals(type)) {
+			else
+			if ("java.lang.String".equals(type)) {
 				// No-op
-			} else {
+			} else
 				// We have specified a non-primitive "class" parameter.
 				return checkClassParameterIsValid(key, value, type);
-			} // End if arbitrary class
 
-		} catch (MissingResourceException e) {
+		}
+		catch (MissingResourceException e) {
 			// We dont have a "type" for this one
 			logger.log(Level.WARNING,"INTERNAL ERROR: No type specified for property [{0}]", key);
 			return false;
-		} catch (TypedPropertyException err) {
+		}
+		catch (TypedPropertyException err) {
 			// NumberFormatException means the value did not parse correctly.
-			logger.log(Level.WARNING,
-					"Parameter validation failed for property [" + key + ']',
-					err);
+			logger.log(Level.WARNING, "Parameter validation failed for property [" + key + ']', err);
 			return false;
 		}
-
 		// success if we passed all tests
 		return true;
 	}
@@ -469,8 +415,7 @@ public final class Config {
 	 * @param type
 	 * @return
 	 */
-	private static final boolean checkClassParameterIsValid(String key,
-			String value, String type) {
+	private static final boolean checkClassParameterIsValid(String key, String value, String type) {
 		// We have specified a "class" parameter. This may need to be amended to
 		// include the full package.
 
@@ -485,12 +430,9 @@ public final class Config {
 		try {
 			// Get defined class
 			rootClass = Class.forName(type);
-		} catch (ClassNotFoundException e1) {
-			logger
-					.log(
-							Level.WARNING,
-							"INTERNAL ERROR: Class [{0}]] does not exist, required for property [{1}]",
-							new Object[]{type, key});
+		}
+		catch (ClassNotFoundException e1) {
+			logger.log(Level.WARNING, "INTERNAL ERROR: Class [{0}]] does not exist, required for property [{1}]", new Object[]{ type, key });
 			return false;
 		}
 
@@ -499,60 +441,53 @@ public final class Config {
 			parms.put("pc", "WebSphereMQ");
 			parmsInternal.put("pc", "WebSphereMQ");
 			value = "WebSphereMQ";
-			Log.logger.log( Level.WARNING, "Parameter -pc ({0}) is case-sensitive and should read WebSphereMQ", value);
-		}		
-		
+			Log.logger.log(Level.WARNING, "Parameter -pc ({0}) is case-sensitive and should read WebSphereMQ", value);
+		}
+
 		if (value.equalsIgnoreCase("wbimb") && !value.equals("WBIMB")) {
 			parms.put("pc", "WMB");
 			parmsInternal.put("pc", "WMB");
 			value = "WMB";
-			Log.logger.log( Level.WARNING, "Parameter -pc ({0}) specified WBIMB this class has been renamed to WMB", value);
+			Log.logger.log(Level.WARNING, "Parameter -pc ({0}) specified WBIMB this class has been renamed to WMB", value);
 		}
-		
+
 		// Allow null values for classes
-		if (value == null || "".equals(value)) {
+		if (value == null || "".equals(value))
 			return true;
-		}
+
 		Class<?> clazz;
 		try {
 			clazz = Class.forName(value);
-		} catch (ClassNotFoundException e2) {
+		}
+		catch (ClassNotFoundException e2) {
 			// Not found, try prepending root package
 			try {
-				String newvalue = "com.ibm.uk.hursley.perfharness." + value;
+				final String newvalue = "com.ibm.uk.hursley.perfharness." + value;
 				// Note: could calculate what the root package is from our own package!
 				clazz = Class.forName(newvalue);
 				// replace the default entry
 				parmsInternal.put(key, newvalue);
-			} catch (ClassNotFoundException e3) {
-
+			}
+			catch (ClassNotFoundException e3) {
 				// Not found, now try prepending the package of the rootclass
 				try {
-					String newvalue = rootClass.getPackage().getName() + '.'
-							+ value;
+					final String newvalue = rootClass.getPackage().getName() + '.' + value;
 					clazz = Class.forName(newvalue);
 					parmsInternal.put(key, newvalue);
-				} catch (ClassNotFoundException e4) {
+				}
+				catch (ClassNotFoundException e4) {
 					// not found, bail out
-					logger
-							.log(Level.WARNING, "Property [{0}] specifies a class [{1}] which cannot be located.", new Object[] {key, value} );
+					logger.log(Level.WARNING, "Property [{0}] specifies a class [{1}] which cannot be located.", new Object[] { key, value });
 					return false;
-
 				} // end try catch
 			} // end try catch
 		} // end try catch
 		if (!rootClass.isAssignableFrom(clazz)) {
-			logger
-					.log(
-							Level.WARNING,
-							"Property [{0}={1}] specifies a class that does extend {3}",
-							new Object[]{key, value, rootClass});
+			logger.log(Level.WARNING, "Property [{0}={1}] specifies a class that does extend {3}", new Object[]{ key, value, rootClass });
 			return false;
 		}
-
 		// success if we passed all tests
 		return true;
-
 	}
 
 	/**
@@ -561,15 +496,14 @@ public final class Config {
 	 */
 	private static String findFirstClassOwningProperty(String key) {
 		final String keydflt = key + ".dflt";
-		for (final Iterator<String> iter = regModules.keySet().iterator(); iter.hasNext();) {
+		for (final Iterator<String> iter = regModules.keySet().iterator(); iter.hasNext(); ) {
 			final String name = iter.next();
-			final ResourceBundle bundle = (ResourceBundle) regModules.get(name);
-
+			final ResourceBundle bundle = (ResourceBundle)regModules.get(name);
 			try {
-				if (bundle.getString(keydflt) != null) {
+				if (bundle.getString(keydflt) != null)
 					return name;
-				}
-			} catch (MissingResourceException e) {
+			}
+			catch (MissingResourceException e) {
 				// Expensive No-op, but only called at program initiation
 			} // end try
 		} // end for
@@ -581,18 +515,16 @@ public final class Config {
 	 * @return Last class that registered that property or null
 	 */
 	private static String findLastClassOwningProperty(String key) {
-		String keydflt = key + ".dflt";
-
+		final String keydflt = key + ".dflt";
 		final List<String> l = Collections.list(Collections.enumeration(regModules.keySet()));
 		for (final ListIterator<String> iter = l.listIterator(regModules.size()); iter.hasPrevious(); ) {
 			final String name = iter.previous();
 			final ResourceBundle bundle = regModules.get(name);
-
 			try {
-				if (bundle.getString(keydflt) != null) {
+				if (bundle.getString(keydflt) != null)
 					return name;
-				}
-			} catch (MissingResourceException e) {
+			}
+			catch (MissingResourceException e) {
 				// Expensive No-op, but only called at program initiation
 			} // end try
 		} // end for
@@ -610,8 +542,7 @@ public final class Config {
 	 * @return
 	 */
 	public static String describeModules(String modules, boolean inFull) {
-		StringBuffer sb = new StringBuffer(1000);
-
+		final StringBuffer sb = new StringBuffer(1000);
 		// Handle multiple space-separated modules
 		describeModules_internal(sb, Arrays.asList(modules.split("\\s")), inFull);
 
@@ -624,11 +555,9 @@ public final class Config {
 	 * @param inFull
 	 */
 	public static String describe(boolean inFull) {
-
 		final StringBuffer sb = new StringBuffer();
 		describeModules_internal(sb, regModules.keySet(), inFull);
 		return sb.toString();
-
 	}
 
 	/**
@@ -642,50 +571,45 @@ public final class Config {
 	 */
 	private static void describeModules_internal(StringBuffer sb, Collection<? extends String> modules, boolean inFull) {
 
-		if (asXML) {
+		if (asXML)
 			sb.append("<modules>\n");
-		}
-
-		for (final Iterator<? extends String> iter = modules.iterator(); iter.hasNext();) {
-
+		for (final Iterator<? extends String> iter = modules.iterator(); iter.hasNext(); ) {
 			String name = iter.next();
 			// Get resources from memory
-			ResourceBundle bundle = (ResourceBundle) regModules.get(name);
-
+			ResourceBundle bundle = (ResourceBundle)regModules.get(name);
 			if (bundle == null) {
 				// Get resources from disk
 				String searchlist[] = new String[] {
-						"com.ibm.uk.hursley.perfharness.jms.providers.",
-						"com.ibm.uk.hursley.perfharness.", "", };
+					"com.ibm.uk.hursley.perfharness.jms.providers.",
+					"com.ibm.uk.hursley.perfharness.",
+					"",
+				};
+
 				// Note: make relative to our own Package
 				int index = searchlist.length;
-
 				while (index-- > 0) {
 					try {
-						bundle = ResourceBundle.getBundle(searchlist[index]
-								+ name);
+						bundle = ResourceBundle.getBundle(searchlist[index] + name);
 						// This part is only executed if successful
 						name = searchlist[index] + name;
 						index = 0;
-					} catch (MissingResourceException e) {
+					}
+					catch (MissingResourceException e) {
 						// no-op
 					}
 				} // end while searching
 			} // end if bundle == null
 
-			if (asXML) {
+			if (asXML)
 				describeModuleAsXML(sb, name, bundle, inFull);
-			} else {
+			else
 				describeModuleAsText(sb, name, bundle, inFull);
-			}
+
 			if (inFull)
 				sb.append('\n');
-
 		} // end for iterator
-
-		if (asXML) {
+		if (asXML)
 			sb.append("</modules>\n");
-		}
 	}
 
 	/**
@@ -699,107 +623,80 @@ public final class Config {
 	 * @param inFull
 	 *            Describe in full detail
 	 */
-	private static void describeModuleAsText(StringBuffer sb, String name,
-			ResourceBundle bundle, boolean inFull) {
-
+	private static void describeModuleAsText(StringBuffer sb, String name, ResourceBundle bundle, boolean inFull) {
 		if (bundle == null) {
 			sb.append("UNKNOWN MODULE [" + name + "]\n");
 			return;
 		}
-
 		sb.append(name).append(":\n");
-
 		try {
-			if (inFull) {
-				String desc = bundle.getString(name + ".desc");
-				sb.append(desc).append("\n\n");
-			}
-		} catch (MissingResourceException e) {
+			if (inFull)
+				sb.append(bundle.getString(name + ".desc")).append("\n\n");
+		}
+		catch (MissingResourceException e) {
 		}
 
 		final Enumeration<String> keys = bundle.getKeys();
 		while (keys.hasMoreElements()) {
-
 			String key = keys.nextElement();
 			if (key.endsWith(".dflt")) {
-
 				key = key.substring(0, key.length() - 5);
 
 				// Check property is not shadowed
 				// Note: in the case of shadowed properties, which desc should we use
-				String last = findLastClassOwningProperty(key);
+				final String last = findLastClassOwningProperty(key);
 				if (last == null || last.equals(name)) {
-
-					// ==null for recursive help
-
+					// == null for recursive help
 					boolean hidden = false;
 					try {
 						hidden = bundle.getString(key + ".hide") != null;
-					} catch (MissingResourceException e) {
+					}
+					catch (MissingResourceException e) {
 						// no .hide specified = not hidden
 					}
 
 					if (inFull || !hidden) {
-
 						// Get key description
 						try {
-							String desc = bundle.getString(key + ".desc");
-
-							sb.append("  ").append(key).append("\t").append(
-									desc);
+							final String desc = bundle.getString(key + ".desc");
+							sb.append("  ").append(key).append("\t").append(desc);
 
 							// Get default value
 							String def = null;
 							try {
 								def = bundle.getString(key + ".dflt");
-							} catch (MissingResourceException e) {
+							}
+							catch (MissingResourceException e) {
 								// No-op
 							}
-							if (def != null) {
-								sb.append(" (default: ").append(def)
-										.append(")");
-							}
+							if (def != null)
+								sb.append(" (default: ").append(def).append(")");
 
 							// Get current value
 							sb.append("\n");
 							try {
-								if (inFull) {
-									String xtra = "\t".concat(bundle.getString(
-											key + ".xtra").replaceAll("\n",
-											"\n\t"));
-									sb.append(xtra).append('\n');
-								}
-							} catch (MissingResourceException e) {
+								if (inFull)
+									sb.append("\t".concat(bundle.getString(key + ".xtra").replaceAll("\n", "\n\t"))).append('\n');
+							}
+							catch (MissingResourceException e) {
 							}
 
-							if (!bundle.getString(key + ".type").startsWith(
-									"java.lang")) {
+							if (!bundle.getString(key + ".type").startsWith("java.lang")) {
 								if (inFull) {
-									StringTokenizer modules = new StringTokenizer(
-											bundle.getString(key + ".modules"));
-									while (modules.hasMoreElements()) {
-										String module = (String) modules
-												.nextElement();
-										sb.append("\t\t" + module + "\n");
-									}
-								} else {
-									sb
-											.append("\t\tFor full module list use -hm "
-													+ name + "\n");
-								}
+									final StringTokenizer modules = new StringTokenizer(bundle.getString(key + ".modules"));
+									while (modules.hasMoreElements())
+										sb.append("\t\t" + (String)modules.nextElement() + "\n");
+								} else
+									sb.append("\t\tFor full module list use -hm " + name + "\n");
 							} // end if modules
-
-						} catch (MissingResourceException e) {
+						}
+						catch (MissingResourceException e) {
 							// undocumented feature !
 						}
 					} // end if ! hidden
-
 				} // ends if ! shadowed
-
 			} // end if endsWith(dflt)
-
 		} // end while keys
-
 	}
 
 	/**
@@ -815,84 +712,71 @@ public final class Config {
 	 * @param inFull
 	 *            Describe in full detail
 	 */
-	private static void describeModuleAsXML( StringBuffer sb, String name, ResourceBundle bundle, boolean inFull ) {
-		
+	private static void describeModuleAsXML(StringBuffer sb, String name, ResourceBundle bundle, boolean inFull) {
 		// ignore inFull 
 		sb.append( "<module name=\"").append(name).append("\">\n");
-		
-		if ( bundle!=null ) { 
-			
+		if (bundle != null) {
 			try {
-				String desc = bundle.getString( name + ".desc" );
-				sb.append( "<desc>" ).append( xmlFormat(desc) ).append( "</desc>\n" );
-			} catch ( MissingResourceException e ) {}
-			
+				sb.append("<desc>").append(xmlFormat(bundle.getString(name + ".desc"))).append("</desc>\n");
+			}
+			catch (MissingResourceException e) {
+			}
+
 			final Enumeration<String> keys = bundle.getKeys();
 			while (keys.hasMoreElements()) {
-				
 				String key = keys.nextElement();
-				if ( key.endsWith(".dflt") ) {
-					
-					key = key.substring( 0, key.length()-5 );
-					
+				if (key.endsWith(".dflt")) {
+					key = key.substring(0, key.length() - 5);
 					// Check property is not shadowed
 					// Note: in the case of shadowed properties, which desc should we use
-					String last = findLastClassOwningProperty(key);
-					if ( last==null || last.equals(name) ) {
-						
-							// Get key description
-							try {
-								String desc = bundle.getString(key + ".desc");
-								
-								sb.append("<arg id=\"").append(key).append("\" default=\"");						
-										
-								// Get default value
-								String def = null;
-								try {
-									def = bundle.getString(key+".dflt");
-								} catch (MissingResourceException e) {
-									// No-op
-								}
-								if ( def !=null ) {
-									sb.append(def);
-								}
-								sb.append("\"").append(">\n<desc>").append( xmlFormat(desc) ).append("</desc>\n");
-								
-								try {
-									String xtra = bundle.getString( key + ".xtra" );
-									sb.append("<xtra>").append( xmlFormat(xtra) ).append( "</xtra>\n" );
-								} catch ( MissingResourceException e ) {}
-								
-								if ( ! bundle.getString(key + ".type").startsWith("java.lang") ) {
-									
-									try {
-										StringTokenizer modules = new StringTokenizer( bundle.getString(key + ".modules") );
-										sb.append( "<argmodules>\n" );
-										while (modules.hasMoreElements()) {
-											String module = (String) modules.nextElement();
-											sb.append( "<argmodule id=\""+module+"\"/>\n");
-										}
-										sb.append( "</argmodules>" );
-									} catch ( MissingResourceException e ) {
-										// Swallowed - no modules paramter exists
-									}
-								} // end if modules
-								
-								sb.append( "</arg>\n" ); 
-		
-							} catch (MissingResourceException e) {
-								// undocumented feature !
-							}
-							
-					} // ends if ! shadowed
-					
-				} // end if endsWith(dflt)
-		
-			} // end while keys
+					final String last = findLastClassOwningProperty(key);
+					if (last == null || last.equals(name)) {
+						// Get key description
+						try {
+							final String desc = bundle.getString(key + ".desc");
+							sb.append("<arg id=\"").append(key).append("\" default=\"");
 
+							// Get default value
+							String def = null;
+							try {
+								def = bundle.getString(key + ".dflt");
+							}
+							catch (MissingResourceException e) {
+								// No-op
+							}
+							if (def != null)
+								sb.append(def);
+
+							sb.append("\"").append(">\n<desc>").append(xmlFormat(desc)).append("</desc>\n");
+
+							try {
+								sb.append("<xtra>").append(xmlFormat(bundle.getString(key + ".xtra"))).append("</xtra>\n");
+							}
+							catch (MissingResourceException e) {
+							}
+
+							if (!bundle.getString(key + ".type").startsWith("java.lang")) {
+								try {
+									final StringTokenizer modules = new StringTokenizer(bundle.getString(key + ".modules"));
+									sb.append("<argmodules>\n");
+									while (modules.hasMoreElements())
+										sb.append("<argmodule id=\"" + (String)modules.nextElement() + "\"/>\n");
+									sb.append("</argmodules>");
+								}
+								catch (MissingResourceException e) {
+									// Swallowed - no modules parameter exists
+								}
+							} // end if modules
+							sb.append("</arg>\n"); 
+						}
+						catch (MissingResourceException e) {
+							// undocumented feature !
+						}
+					} // ends if ! shadowed
+				} // end if endsWith(dflt)
+			} // end while keys
 		} // End if bundle != null
-		sb.append ( "</module>\n" );
-		
+		sb.append("</module>\n");
 	}
 
 	/**
@@ -903,25 +787,21 @@ public final class Config {
 	 */
 	private static String xmlFormat(String desc) {
 		// Only works in Java 1.4 onwards
-		String res = desc.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-		return res;
+		return desc.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 	}
-	
+
 	@SuppressWarnings("unused")
-	private static String concatStrings( String... strings ) {
-		
+	private static String concatStrings(String... strings) {
 		boolean first = true;
-		StringBuilder sb = new StringBuilder();
-		for ( String s : strings ) {
-			if ( first ) {
+		final StringBuilder sb = new StringBuilder();
+		for (String s : strings) {
+			if (first)
 				first = false;
-			} else {
+			else
 				sb.append(' ');
-			}
 			sb.append(s);
 		}
 		return sb.toString();
-		
 	}
 
 	/**
@@ -943,17 +823,13 @@ public final class Config {
 	 *         configuration option.
 	 */
 	public synchronized static boolean init(String[] commandLine, Class<?> root) {
-		
-		if ( configState==INITIAL ) {
+		if (configState==INITIAL) {
 
 			// Read in command line
 			if (commandLine != null && commandLine.length != 0) {
-
 				userConfigSupplied = true;
 				parmsInternal.readCommandLine(commandLine);
-				
 			}
-
 			configState = LOADING;
 
 			// Read in properties file
@@ -962,36 +838,33 @@ public final class Config {
 				if (configfile.length() > 0) {
 					try {
 						parmsInternal.readConfigFile(configfile);
-					} catch (IOException e) {
-						logger.log(Level.WARNING, "Error reading file ["
-								+ configfile + "]", e);
+					}
+					catch (IOException e) {
+						logger.log(Level.WARNING, "Error reading file [" + configfile + "]", e);
 					}
 				} // end if
-			} catch (TypedPropertyException e) {
+			}
+			catch (TypedPropertyException e) {
 				// No op - hp was not specified
 			}
 
 			// Register ourselves first !
 			registerConfig();
-			
+
 			// Now we can use Log
-			if ( userConfigSupplied ) {
-				StringBuilder sb = new StringBuilder();
-				for ( String s : commandLine) {
+			if (userConfigSupplied) {
+				final StringBuilder sb = new StringBuilder();
+				for (String s : commandLine)
 					sb.append(s).append(' ');
-				}
-				Log.logger.log( Level.FINEST, "Commandline:" );
-				Log.logger.log( Level.FINEST, sb.toString() );
+				Log.logger.log(Level.FINEST, "Commandline:");
+				Log.logger.log(Level.FINEST, sb.toString());
 			}
 
 		} // if ! commandline read
-
-		if (root != null) {
+		if (root != null)
 			registerAnother(root);
-		}
 		
 		return userConfigSupplied;
-
 	}
 
 	/**
@@ -1000,16 +873,13 @@ public final class Config {
 	 * class' javadoc for normal implementations of registerConfig.
 	 */
 	private static void registerConfig() {
-
 		// register the log class first as it will help clarify any subsequent
 		// error reporting.
 		Log.registerConfig();
 
 		// Now we can use the Log parameters
 		logFormatter.setSquashExceptions(!Config.parms.getBoolean("st"));
-
 		registerSelf(Config.class);
-
 		parmsInternal.setStrictDefaults(parms.getBoolean("hs"));
 
 		int count = 0;
@@ -1022,13 +892,10 @@ public final class Config {
 		if (parmsInternal.cmdLineProps.containsKey("v"))
 			count++;
 
-		if (count > 1) {
-			Config.logger
-					.warning("Cannot specify more than one of -h, -hm, -hf or -v");
-		}
+		if (count > 1)
+			Config.logger.warning("Cannot specify more than one of -h, -hm, -hf or -v");
 
 		asXML = parms.getBoolean("hx");
-
 	}
 
 	/**
@@ -1049,40 +916,31 @@ public final class Config {
 	 * @see #isInvalid()
 	 */
 	public static void markLoaded() {
-
 		configState = LOADED;
-
 		if (userConfigSupplied) {
-
 			if (parms.getBoolean("hs")) {
-				getRedundantProperties(parmsInternal.cmdLineProps,
-						"(from commandline)");
+				getRedundantProperties(parmsInternal.cmdLineProps, "(from commandline)");
 				getRedundantProperties(parmsInternal.fileProps, "(from file)");
 			}
-
 		} // end if args set
 
 		try {
 			displayHelpIfNeeded();
-		} catch (ApplicationPropertyError e) {
+		}
+		catch (ApplicationPropertyError e) {
 			// No-op (invalid values of -h et al. will throw an exception here)
 		}
 
 		// All registration now complete so....
-		if (invalid) {
+		if (invalid)
 			exit();
-		}
-
 	}
 
 	/**
 	 * Warn of invalid configuration and die!
 	 */
 	public static void exit() {
-		Log.logger
-				.log(
-						Level.SEVERE,
-						"The current configuration is not valid.  Try re-running with -h to see available options.");
+		Log.logger.log(Level.SEVERE, "The current configuration is not valid. Try re-running with -h to see available options.");
 		System.exit(1);
 	}
 
@@ -1092,27 +950,22 @@ public final class Config {
 	 * @param c A map to check for surplus properties.
 	 * @param src Textual name of property map being checked.
 	 */
-	private static void getRedundantProperties( Map<String,String> c, String src ) {
-		
-		Set<String> cmdset = new HashSet<String>( c.keySet() ); // Take a copy given keySet
-		Set<String> defset = parmsInternal.keySet(); // Get all registered keys
-		cmdset.removeAll( defset ); // Subtract
-		
-		// Warn of any remaining (unregistered) values
-		for (final Iterator<String> iter = cmdset.iterator(); iter.hasNext();) {
-			final String key = iter.next();
-			logger.log(Level.WARNING,
-				"Parameter [{0}] {1} is not known/valid in this configuration",
-				new Object[]{key, src});
-		} // end for
+	private static void getRedundantProperties(Map<String,String> c, String src) {
+		final Set<String> cmdset = new HashSet<String>(c.keySet()); // Take a copy given keySet
+		final Set<String> defset = parmsInternal.keySet(); // Get all registered keys
+		cmdset.removeAll(defset); // Subtract
 
+		// Warn of any remaining (unregistered) values
+		for (final Iterator<String> iter = cmdset.iterator(); iter.hasNext(); ) {
+			final String key = iter.next();
+			logger.log(Level.WARNING, "Parameter [{0}] {1} is not known/valid in this configuration", new Object[]{ key, src });
+		} // end for
 	}
 
 	/**
 	 * Process any help requests by calling the correct specific methods.
 	 */
 	private static void displayHelpIfNeeded() {
-
 		int i = 0;
 		String module = null;
 
@@ -1122,16 +975,14 @@ public final class Config {
 			i = 2;
 		if (parms.getBoolean("hf"))
 			i = 3;
-
 		else {
 			module = parms.getString("hm");
 			if (module.length() > 0)
 				i = 5;
 		}
 
-		if (i > 0 && asXML) {
+		if (i > 0 && asXML)
 			System.out.println("<product>\n");
-		}
 
 		switch (i) {
 		case 1: // -h
@@ -1153,49 +1004,41 @@ public final class Config {
 		} // end switch
 
 		if (i > 0) {
-			if (asXML) {
+			if (asXML)
 				System.out.println("</product>\n");
-			}
 			System.exit(0);
 		}
-
 	}
 
 	/**
 	 * @return String description of the tools version (from properties file)
 	 */
 	public static String getVersion() {
-
-		String localURL = getLocalResourceURL(Config.class, "build.properties");
-		Properties buildProps = new Properties();
+		final String localURL = getLocalResourceURL(Config.class, "build.properties");
+		final Properties buildProps = new Properties();
 		String retVal;
 
 		try {
-			buildProps.load(Config.class.getClassLoader().getResourceAsStream(
-					localURL));
-			String name = buildProps.getProperty("build.name");
-			String version = buildProps.getProperty("build.version");
-			String id = buildProps.getProperty("build.id");
+			buildProps.load(Config.class.getClassLoader().getResourceAsStream(localURL));
+			final String name = buildProps.getProperty("build.name");
+			final String version = buildProps.getProperty("build.version");
+			final String id = buildProps.getProperty("build.id");
 			retVal = name + " " + version + " (build " + id + ")";
-		} catch (Exception e) {
-			Log.logger
-					.severe("Cannot find build.properties -- version is unidentifiable.");
+		}
+		catch (Exception e) {
+			Log.logger.severe("Cannot find build.properties -- version is unidentifiable.");
 			retVal = "[unknown PerfHarness derivative]";
 		}
 
-		if (asXML) {
+		if (asXML)
 			return "<name>" + retVal + "</name>\n";
-		} else {
+		else
 			return retVal;
-		}
-
 	}
 
 	private static String getLocalResourceURL(Class<?> c, String name) {
-
-		String root = c.getPackage().getName().replace('.', '/');
+		final String root = c.getPackage().getName().replace('.', '/');
 		return root + '/' + name;
-
 	}
 
 	/**
@@ -1208,16 +1051,12 @@ public final class Config {
 	 *             A call was made after initialisation started.
 	 */
 	public static void injectEarlyParameters(String key, String value) {
-
 		if (configState == INITIAL) {
-			boolean strict = parmsInternal.setStrictDefaults(false);
+			final boolean strict = parmsInternal.setStrictDefaults(false);
 			parmsInternal.put(key, value);
 			parmsInternal.setStrictDefaults(strict);
 		} else {
-			throw new RuntimeException(
-					"Early parameter injection is only applicable BEFORE init() is called.");
+			throw new RuntimeException("Early parameter injection is only applicable BEFORE init() is called.");
 		}
-
 	}
-
 }

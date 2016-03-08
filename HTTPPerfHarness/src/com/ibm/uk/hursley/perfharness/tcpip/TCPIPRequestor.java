@@ -61,7 +61,7 @@ public final class TCPIPRequestor extends WorkerThread implements WorkerThread.P
 		try {
 			// Create a socket to the host
 			if (socket == null)
-				socket = TCPIPProvider.USE_SSL ? tcpipprovider.getSSLSocket() : tcpipprovider.getSocket();
+				socket = TCPIPProvider.USE_SECURE ? tcpipprovider.getSSLSocket() : tcpipprovider.getSocket();
 			tcpipWriter = new DataOutputStream(socket.getOutputStream());
 		}
 		catch (Exception e) {
@@ -77,7 +77,7 @@ public final class TCPIPRequestor extends WorkerThread implements WorkerThread.P
 		try {
 			// Create a socket to the host
 			if (socket == null)
-				socket = TCPIPProvider.USE_SSL ? tcpipprovider.getSSLSocket() : tcpipprovider.getSocket();
+				socket = TCPIPProvider.USE_SECURE ? tcpipprovider.getSSLSocket() : tcpipprovider.getSocket();
 			tcpipReader = new DataInputStream((socket.getInputStream()));
 		}
 		catch (Exception e) {

@@ -21,21 +21,20 @@ import com.ibm.uk.hursley.perfharness.Log;
  * @see java.util.logging.ConsoleHandler
  */
 public class SelectableConsoleHandler extends StreamHandler {
-
 	/**
 	 * Log to given stream
 	 * @param stream
 	 */
-	public SelectableConsoleHandler( OutputStream stream ) {
+	public SelectableConsoleHandler(OutputStream stream) {
 		super();
 		setOutputStream(stream);
 	}
-	
+
 	/**
 	 * Log to stdout.
 	 */
 	public SelectableConsoleHandler() {
-		this( System.out );
+		this(System.out);
 	}
 
 	public void publish(LogRecord record) {
@@ -47,5 +46,4 @@ public class SelectableConsoleHandler extends StreamHandler {
 		Log.reviveLogger();
 		flush();
 	}
-
 }

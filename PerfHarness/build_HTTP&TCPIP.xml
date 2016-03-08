@@ -19,7 +19,7 @@
 	<!-- This is the name by which the packaged code will identify itself -->
 	<property name="copyright.name" value="PerfHarness" />
 	
-	<property name="copyright.version" value="1.2" />
+	<property name="copyright.version" value="1.0.1" />
 	
 	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
 	<property name="perfharness.dir" location="../PerfHarness" />

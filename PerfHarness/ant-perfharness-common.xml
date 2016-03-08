@@ -48,6 +48,7 @@
 		
 		<!-- Define the build classpath -->
 		<path id="build-classpath">   
+			<pathelement path="../PerfHarness/${dest.dir}"/>
 			<fileset dir=".">
 				<include name="**/**.jar"/>
 			</fileset>
@@ -60,9 +61,8 @@
 			<fileset dir="../PerfHarnessPrereqs/">           	
 				<include name="**/**.jar"/>
 			</fileset>
-			<pathelement path="../PerfHarness/${dest.dir}"/>
 		</path>
-		
+
 		<!-- First compile the Perfharness classes -->
        	<mkdir dir="${dest.dir}" />		
     	<javac srcdir="${src.dir}"	destdir="${dest.dir}">
@@ -181,9 +181,6 @@
 							<include name="**/*"/>
 			       		</fileset>
 			        </path>
-					<pathconvert property="jarfileProp" refid="jarfile"/>
-
-					<echo>File is ${jarfileProp}</echo>
 				</sequential>
 			</for>
 		</sequential>

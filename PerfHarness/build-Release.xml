@@ -19,7 +19,7 @@
 	<!-- This is the name by which the packaged code will identify itself -->
 	<property name="copyright.name" value="PerfHarness" />
 	
-	<property name="copyright.version" value="1.0" />
+	<property name="copyright.version" value="1.0.1" />
 	
 	<tstamp>
 	      <format property="TIMESTAMP" pattern="yyyyMMdd-HHmmss" locale="en,UK"/>

@@ -17,6 +17,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.Log;
 
@@ -31,7 +34,8 @@ public class TCPIPProviderBase {
 	private static InetAddress addr;
 	private static final String msgEncoding = "UTF8";
 	public static boolean USE_NP_CONNECTIONS = false; 
-	public static boolean USE_SSL = false;
+	public static boolean USE_SECURE = false;
+	public static String[] SECURE_PROTO = null;
 
 	protected void setupProvider() {
 		port = Config.parms.getInt("jp");
@@ -41,7 +45,9 @@ public class TCPIPProviderBase {
 		timeoutNumIntervals = Config.parms.getInt("to") / timeoutIntervalLength;
 		hostname = Config.parms.getString("jh");
 		USE_NP_CONNECTIONS = Config.parms.getBoolean("cs");
-		USE_SSL = Config.parms.getBoolean("se");
+		USE_SECURE = Config.parms.getBoolean("se");
+		final String sSecureProto = Config.parms.getString("ps");
+		SECURE_PROTO = ((sSecureProto != null) && (sSecureProto.length() > 0)) ? sSecureProto.split(",") : null;
 		Log.logger.log(Level.INFO, "ThreadID " + Thread.currentThread().getId());
 
 	}
@@ -89,24 +95,25 @@ public class TCPIPProviderBase {
 		}
 	}
 	public static byte[] loadMessageFromFile(String fileName) throws IOException {
-		if(fileName.isEmpty()) {
+		if (fileName.isEmpty())
 			// no file has been specified, return an empty byte array
 			return new byte[0];
-		}
 		final File f = new File(fileName);
 		final FileInputStream fis = new FileInputStream(f);
-		final long msgSize = (int)f.length();
-		if (msgSize > (long)Integer.MAX_VALUE)
-			throw new IOException("File is too large");
-		final byte[] data = new byte[(int)msgSize];
-		fis.read(data);
-		fis.close();
-		return data;
+		try {
+			final long msgSize = (int)f.length();
+			if (msgSize > (long)Integer.MAX_VALUE)
+				throw new IOException("File is too large");
+			final byte[] data = new byte[(int)msgSize];
+			fis.read(data);
+			return data;
+		}
+		finally {
+			fis.close();
+		}
 	}
 	public Socket getSocket() throws IOException {
-		
 		getHostname(); 
-		
 		final Socket socket = new Socket();
 		socket.setTcpNoDelay(true);
 		socket.setReuseAddress(true);
@@ -127,14 +134,14 @@ public class TCPIPProviderBase {
 		return socket;
 	}
 	public Socket getSSLSocket() throws IOException {
-		
 		getHostname();
-		
-		final javax.net.SocketFactory sf = javax.net.ssl.SSLSocketFactory.getDefault();
+		final SSLSocketFactory sf = (SSLSocketFactory)SSLSocketFactory.getDefault();
 		if (portRange > 1)
 			System.out.println("About to connect to port " + currentPort + " for thread " + Thread.currentThread());
 
-		final Socket socket = sf.createSocket();
+		final SSLSocket socket = (SSLSocket)sf.createSocket();
+		if (SECURE_PROTO != null)
+			socket.setEnabledProtocols(SECURE_PROTO);
 		socket.setReuseAddress(true);
 		socket.setSoLinger(true, 0);
 		socket.setSoTimeout(timeoutIntervalLength);
@@ -152,21 +159,16 @@ public class TCPIPProviderBase {
 
 		return socket;
 	}
-	
-	public void getHostname()  {
-		
-		String[] HostArray = hostname.split("[,]"); 
-		String threadhostname = HostArray[(int) ((((Thread.currentThread().getId()-13)%HostArray.length)+1)-1)];
-		
-		if (HostArray.length >1 ) {
-			Log.logger.log(Level.INFO, "Connecting to " + threadhostname);
-		}
-		
+	public void getHostname() {
+		final String[] hostArray = hostname.split("[,]"); 
+		final String threadHostName = hostArray[(int)((((Thread.currentThread().getId() - 13) % hostArray.length) + 1) - 1)];
+		if (hostArray.length > 1)
+			Log.logger.log(Level.INFO, "Connecting to " + threadHostName);
 		try {
-			addr = InetAddress.getByName(threadhostname);
+			addr = InetAddress.getByName(threadHostName);
 		}
 		catch (UnknownHostException e) {
-			Log.logger.log(Level.SEVERE, "Cannot resolve Hostname " + threadhostname, e);
+			Log.logger.log(Level.SEVERE, "Cannot resolve Hostname " + threadHostName, e);
 			System.exit(1);
 		}
 	}

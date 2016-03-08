@@ -95,7 +95,7 @@ SOAP Requestor:
 
 TCPIP Requestor: 
 
-```java -ms512M -mx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc tcpip.TCPIPRequestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -ws 1 -dn 1 -mf MyInputMessage.xml -jh localhost -jp 1455 -rb 1384```
+```java -ms512M -mx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc tcpip.TCPIPRequestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -dn 1 -mf MyInputMessage.xml -jh localhost -jp 1455 -rb 1384```
 
 ### Common Flags:
 

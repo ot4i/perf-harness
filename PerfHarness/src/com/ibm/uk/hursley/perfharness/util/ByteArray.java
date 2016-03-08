@@ -15,6 +15,9 @@
  */
 package com.ibm.uk.hursley.perfharness.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Expandable byte[]
  * 
@@ -61,5 +64,33 @@ public final class ByteArray {
 		for (int i = start; i < length; i++)
 			sb.append(String.format("%02X", a[i]));
 		return sb.toString();
+	}
+	public static int readUntil(InputStream s, byte[] symbol, byte[] buf, int offset, int length) throws IOException {
+		int nread = 0;
+		int nmatched = 0;
+		while ((nread < length) && (nmatched < symbol.length)) {
+			final int c = s.read();
+			if (c < 0)
+				// End of stream
+				return nread;
+
+			final byte b = (byte)c;
+			buf[offset + nread] = b;
+			if (b == symbol[nmatched])
+				++nmatched;
+			else
+				nmatched = 0;
+
+			++nread;
+		}
+		return nread;
+	}
+	public static boolean endsWith(byte[] b, int offset, int length, byte[] pattern) {
+		if (length < pattern.length)
+			return false;
+		for (int k = 0, bo = offset + length - pattern.length; k < pattern.length; k++, bo++)
+			if (b[bo] != pattern[k])
+				return false;
+		return true;
 	}
 }

@@ -130,7 +130,7 @@ public final class Requestor extends MQJavaWorkerThread implements WorkerThread.
 		if (transacted)
 			qm.commit();
 
-		inMessage = new MQMessage();  
+		inMessage = new MQMessage();
 		
 		if (correlateMsg) {
 			// copy correlid for GMO matching
@@ -143,7 +143,7 @@ public final class Requestor extends MQJavaWorkerThread implements WorkerThread.
 
 		gmo.waitInterval = savedGmoWaitInterval;
 		gmo.options      = savedGmoOptions;
-		gmo.matchOptions = savedGmoMatchOptions;	
+		gmo.matchOptions = savedGmoMatchOptions;
 
 		try {
 			outqueue.get(inMessage, gmo);
