@@ -3,9 +3,9 @@ Perfharness is a flexible and modular Java package for performance testing of HT
 
 Perfharness has been available in binary form on [IBM AlphaWorks](https://ibm.biz/JMSPerfHarness) for a number of years. 
 
-# Importing Perfharness into eclipse.
+# Importing Perfharness into Eclipse.
 
-The top level folders in the repository are eclipse projects. 
+The top level folders in the repository are Eclipse projects. 
 * Download the repository zip file and extract into a temporary directory.  
 * Import the projects using the Import Wizard selecting "Existing Projects into Workspace". 
 * Select the 5 projects and make sure "Copy projects to workspace" is ticked when importing.
@@ -14,9 +14,9 @@ This should result in you having a workspace with the following projects:
 
 ![Workspace](images/PerfharnessWorkspace.png?raw=true "Workspace")
 
-## Importing Prereqs into eclipse
+## Importing Prereqs into Eclipse
 
-Building Perfharness in eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires WebSphere MQ8, MQJavaPerfHarness requires WebSphere MQ7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs
+Building Perfharness in Eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires WebSphere MQ8, MQJavaPerfHarness requires WebSphere MQ7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs
 
 * IBM_WMQ_7: 
     * com.ibm.mq.commonservices.jar
@@ -45,7 +45,7 @@ Building Perfharness in eclipse requires some extra dependancies importing to th
 
 ## Running Perfharness within Eclipse
 
-Once you have imported the pre-reqs you are ready to run within Eclipse or compile the jar for using on other machines. If you would like to run perfharness create a new Run Configuration for a Java application. Generally we would recommend running from eclipse for functional and setup testing but for real performance testing using the jar from the command-line on a server.
+Once you have imported the pre-reqs you are ready to run within Eclipse or compile the jar for using on other machines. If you would like to run perfharness create a new Run Configuration for a Java application. Generally we would recommend running from Eclipse for functional and setup testing but for real performance testing using the jar from the command-line on a server.
 
 Select "JMSPerfHarnessMain" as the Project and "JMSPerfHarness" as the Main Class as shown below
 
@@ -54,6 +54,10 @@ Select "JMSPerfHarnessMain" as the Project and "JMSPerfHarness" as the Main Clas
 On the "Arguments Tab" insert the appropriate set of program arguments such as (MQ Receiver Example):
 
 ![Run Configuration Arguments](images/PerfharnessRunConfiguration2.png?raw=true "RunConfigurationArguments")
+
+Select the Classpath tab, highlight the "User Entries" section and click the Add button. Add all of the PerfHarness projects to the classpath. This should result in a configuration such as this:
+
+![Run Configuration Arguments](images/PerfharnessRunConfiguration3.png?raw=true "RunConfigurationClasspath")
 
 Click "Run"
 
