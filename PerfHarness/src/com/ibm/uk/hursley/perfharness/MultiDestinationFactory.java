@@ -55,7 +55,7 @@ public class MultiDestinationFactory implements DestinationFactory {
 					}
 				}
 				
-				if (destMax > 0 && destBase < destMax) {
+				if (destMax > 0 && destBase > destMax) {
 					destMax = destBase;
 					Config.logger.warning("-dx must be >= -db");
 				}
