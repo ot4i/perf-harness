@@ -81,6 +81,9 @@ public final class FloodPublisher extends AMQPWorkerThread implements WorkerThre
 			Config.registerAnother(Config.parms.getClazz("df"));
 	}
 
+    /* (non-Javadoc)
+     * @see java.lang.Thread#run()
+     */
     public void run() {
         run(this);
     } 
