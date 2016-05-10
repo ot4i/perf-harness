@@ -8,6 +8,8 @@
 ********************************************************** {COPYRIGHT-END} **/
 package com.ibm.uk.hursley.perfharness.amqp;
 
+import java.util.logging.Level;
+
 import javax.jms.BytesMessage;
 import javax.jms.Connection;
 import javax.jms.MessageProducer;
@@ -32,12 +34,16 @@ public final class FloodPublisher extends AMQPWorkerThread implements WorkerThre
 	@SuppressWarnings("unused")
 	private static final String c = com.ibm.uk.hursley.perfharness.Copyright.COPYRIGHT; // IGNORE compiler warning
 	
+	private static final long ONE_SECOND = 1000L;
+	
 	/** The inbound topic name that this publisher will send to**/
 	private final String  inboundTopic = Config.parms.getString("it");
 	/** Whether to use JMS facilities to send the message to the topic **/
 	private final boolean useJMS = Config.parms.getBoolean("jms");
 	/** Whether the topic being published to has the thread id appended **/
 	private final boolean topicIndexByThread = Config.parms.getBoolean("tpt");
+	/** Rate of flooding the message per second */
+	private final int messageRate = Config.parms.getInt("mr");
 
 	/** Sample message used to send **/
 	private final String message;
@@ -49,6 +55,11 @@ public final class FloodPublisher extends AMQPWorkerThread implements WorkerThre
 	MessageProducer jmsProducer;
 	/** Use for JMS sending of messages **/
 	BytesMessage jmsMessage; 
+	
+	/** Message sent so far this message period. **/
+	int numOfMessages = 0;
+	/** Start time of message period **/
+	long startPeriod = System.currentTimeMillis();
 
 
     /**
@@ -60,6 +71,15 @@ public final class FloodPublisher extends AMQPWorkerThread implements WorkerThre
 		topic = topicIndexByThread ? inboundTopic + getThreadNum() : inboundTopic;
         message = new MessageContainer().getStringMessage();
     }
+    
+	/**
+	 * 
+	 */
+	public static void registerConfig() {
+		Config.registerSelf(FloodPublisher.class);
+		if (!Config.isInvalid())
+			Config.registerAnother(Config.parms.getClazz("df"));
+	}
 
     public void run() {
         run(this);
@@ -98,8 +118,40 @@ public final class FloodPublisher extends AMQPWorkerThread implements WorkerThre
 		else {
 			client.sendMessage("flood", topic, message);
 		}
+		messageRateControl ();
 		incIterations();
 		return true;
+	}
+	
+	/**
+	 * 
+	 */
+	private void messageRateControl() {
+		// Is feature enabled?
+		if (messageRate > 0) {
+			// Has the max. message of period been reached?
+			if (++numOfMessages > messageRate) {
+				long timeSpend = System.currentTimeMillis() - startPeriod;
+				long pauseTime = ONE_SECOND - timeSpend;
+				if (pauseTime > 0 ) pause(pauseTime);
+				// Reset counts
+				numOfMessages = 0;
+				startPeriod = System.currentTimeMillis();
+			}
+		}
+	}
+	
+
+	/**
+	 * @param pauseTime
+	 */
+	private void pause (final long pauseTime) {
+		if (logEnabled) log(Level.INFO, "Pausing for {0} millseconds",pauseTime);
+		try {
+			Thread.sleep(pauseTime);
+		} catch (InterruptedException e) { 
+			// Ignore
+		}
 	}
 	
 

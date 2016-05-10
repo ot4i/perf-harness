@@ -1,2 +1,4 @@
 perfharness.jar
 VERSION.txt
+.gitignore
+/bin/

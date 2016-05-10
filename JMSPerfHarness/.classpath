@@ -4,10 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="src" path="/PerfHarness"/>
 	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/jms.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.headers.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.jmqi.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mqjms.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.pcf.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.allclient.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
