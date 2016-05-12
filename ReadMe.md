@@ -43,6 +43,18 @@ Building Perfharness in Eclipse requires some extra dependancies importing to th
     * jms.jar
 * ant-contrib.jar (Always required)
 
+### AMQP Channel Module Pre-reqs
+
+Additional Pre-reqs for AMQP Channel Module
+
+* The Java AMQP Client required by this module can be download from 
+https://developer.ibm.com/messaging/ibm-mq-light-downloads and selecting "Download from Maven Central".
+Refer to the AMQP Client READ.md as further pre-reqs jars are required.
+
+* The allclient.jar is required from the a MQ V9.0 installation.
+
+* Locate all the pre-req jars in located in /lib of the AMQPPerfharness.
+
 ## Running Perfharness within Eclipse
 
 Once you have imported the pre-reqs you are ready to run within Eclipse or compile the jar for using on other machines. If you would like to run perfharness create a new Run Configuration for a Java application. Generally we would recommend running from Eclipse for functional and setup testing but for real performance testing using the jar from the command-line on a server.
