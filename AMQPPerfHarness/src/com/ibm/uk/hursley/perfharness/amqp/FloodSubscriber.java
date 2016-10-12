@@ -43,6 +43,15 @@ public final class FloodSubscriber extends AMQPWorkerThread implements WorkerThr
 		super(name);
 		inboundtopic = topicIndexByThread ? inboundTopicBase + getThreadNum() : inboundTopicBase;
 	}
+	
+	/**
+	 * 
+	 */
+	public static void registerConfig() {
+		Config.registerSelf(FloodSubscriber.class);
+		if (!Config.isInvalid())
+			Config.registerAnother(Config.parms.getClazz("df"));
+	}
 
 
 	/* (non-Javadoc)

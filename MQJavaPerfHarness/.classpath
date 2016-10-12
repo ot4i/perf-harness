@@ -18,3 +18,4 @@
 	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/providerutil.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
+
