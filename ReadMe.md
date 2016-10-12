@@ -52,8 +52,7 @@ https://developer.ibm.com/messaging/ibm-mq-light-downloads and selecting "Downlo
 Refer to the AMQP Client READ.md as further pre-reqs jars are required.
 
 * The allclient.jar is required from the a MQ V9.0 installation.
-
-* Locate all the pre-req jars in located in /lib of the AMQPPerfharness.
+* Copy all of the pre-req jars into /lib of the AMQPPerfharness.
 
 ## Running Perfharness within Eclipse
 
