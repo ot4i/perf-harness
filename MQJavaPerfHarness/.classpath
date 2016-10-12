@@ -1,7 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="src" path="/PerfHarness"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.allclient.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mq.commonservices.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mq.headers.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mq.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mq.jmqi.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mq.pcf.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/com.ibm.mqjms.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/connector.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/fscontext.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/jms.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/jndi.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/jta.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/ldap.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_75/providerutil.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
+
