@@ -73,6 +73,11 @@ public class ControlThread extends Thread {
 	 * All WorkerThreads are added to this group for ease of monitoring.
 	 */
 	protected static ThreadGroup workerThreadGroup = null;
+
+	/**
+	 * Worker name
+	 */
+	private	static String workerClass;	
 	
 	/**
 	 * Register our presence and look up any required parameters for this class. 
@@ -97,12 +102,14 @@ public class ControlThread extends Thread {
 			if ( ctClazz!=ControlThread.class ) {
 				Config.registerAnother( ctClazz );
 			}
+
 		}
 
 		WorkerThread.registerConfig();
 		Statistics.registerConfig();
 		Command.registerConfig();
 			
+		workerClass = Config.parms.getClazz("tc").getSimpleName();
 	}
 	
 	protected ControlThread() {
@@ -211,6 +218,8 @@ public class ControlThread extends Thread {
 	 * as possible.
 	 */
 	public void run() {
+		// Flag to indicate that we have found threads that match our worker class
+		boolean workerThreadsPresent = true;
 		
 		// Inform config module to finalise syntax checking
 		Config.markLoaded();
@@ -221,9 +230,7 @@ public class ControlThread extends Thread {
 
 		try {
 			Log.logger.log( Level.INFO, "START");
-
 			installShutdownMethods();
-
 			int numworkers = Config.parms.getInt( "nt" );
 
 			// Start (anonymous inner class) stats thread
@@ -237,53 +244,56 @@ public class ControlThread extends Thread {
 			if ( Config.parms.getString( "tc" ).indexOf("Nothing")>=0 ) {
 				run_ThreadSizeLoop();
 			} else {
-
 				// 3b.
 				// Start threads sequentially
-					
 				setNumWorkers(numworkers);
 				
 				if ( startWorkers(null) ) {
-		
 					startTimerThread();
-				
 					// Sleep for remainder of testrun
 					synchronized( this ) {
-						
-						while (!shutdown && workerThreadGroup.activeCount()>0) {
+						while (!shutdown && (workerThreadGroup.activeCount() > 0) && workerThreadsPresent) {
+							int count = workerThreadGroup.activeCount();
+							int workerCount = 0;
+							Log.logger.log(Level.FINE, "ActiveCount: " + count);
+							//Workers are already started, so shouldnt have to do any complicated retesting logic here
+							//We are only looking for at least one thread that matches the required worker class							
+							if (count > 0) {
+								Thread threads[] = new Thread[count];
+								int rc = workerThreadGroup.enumerate(threads);
+								for (int t = 0; t < rc; t++) {
+									Log.logger.log(Level.FINEST, "ThreadName: " + threads[t].getName());
+									if (threads[t].getName().startsWith(workerClass)) {
+										workerCount++;
+									}
+								}
+							}
+							Log.logger.log(Level.FINE, "Worker Count: " + workerCount);
+							workerThreadsPresent = (workerCount != 0);
 							try {
 								this.wait(5 * 1000);
 							} catch (InterruptedException e) {
 								// Swallowed
 							}
 						} //end while
-						
 					} //end sync
-					
 				} // end if startworkers
-				
 			} // end if threadsizeloop
 
-			// Handle a fatal error
+		// Handle a fatal error
 		} catch (Exception e) {
+			Log.logger.log( Level.SEVERE, "Fatal Error.", e );
 
-			Log.logger.log( Level.SEVERE,
-				"Fatal Error.", e );
-
-			// Clear up code carefully in fair weather or foul.
+		// Clear up code carefully in fair weather or foul.
 		} finally {
-			
 			// Set rough approximation of endTime 
 			stats.setDefaultEndTime( System.currentTimeMillis() );
 			stats.setStaticStartTime( staticStartTime );
 			
 			// Kill all workers
 			doShutdown();
-			
 			stats.printFinalSummary();
-			
 			Log.logger.log( Level.INFO, "STOP");
-						
 		}
 
 	} // End public void run()
