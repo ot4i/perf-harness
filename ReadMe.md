@@ -92,7 +92,10 @@ This should launch the build process which will produce the jar file perfharness
 
 ### Sample Commands:
 
-MQ Requestor:
+MQ (using IBM MQ classes for JMS) Requestor (preferred way to access MQ):
+```java  -Xms512M -Xmx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc jms.r11.Requestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -su -wt 10 -dn 1 -mf<yourInputFile> -jh <mq host> -jp 1420 -jc SYSTEM.DEF.SVRCONN -jb <your qm> -iq REQUEST -oq REPLY -mt text -jt mqc -pc WebSphereMQ -ja 100```
+
+MQ (using IBM MQ classes for Java) Requestor:
 
 ```java -ms512M -mx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc mqjava.Requestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -ws 1 -dn 1 -mf <yourInputFile> -jh localhost -jp 1414 -jb CSIM  -jc SYSTEM.BKR.CONFIG -iq CSIM_SERVER_IN_Q -oq CSIM_COMMON_REPLY_Q```
 
