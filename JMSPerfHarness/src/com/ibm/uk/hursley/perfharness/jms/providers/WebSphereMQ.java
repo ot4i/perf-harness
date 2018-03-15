@@ -39,6 +39,7 @@ import com.ibm.mq.jms.MQTopicConnectionFactory;
 import com.ibm.mq.pcf.CMQCFC;
 import com.ibm.mq.pcf.PCFMessage;
 import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.msg.client.wmq.WMQConstants;
 import com.ibm.msg.client.wmq.common.CommonConstants;
 import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.Log;
@@ -193,6 +194,19 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 				}				
 			}
 		} // end if psmodel!=null
+		
+		//JMS has two ways of performing authentication with an MQ QM
+		//1. Compatibility mode
+		//2. MQCSP Authentication
+		//The default is using the compatibility method, but applications wanting to use CSP authentication
+		//will need to set "jm" to true 
+		if (Config.parms.getBoolean("jm")) {
+			//MQCSP Authentication
+			cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+		} else {
+			cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, false);
+		}
+			
 	}
 
 	/**
