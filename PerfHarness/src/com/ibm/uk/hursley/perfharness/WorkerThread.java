@@ -10,12 +10,12 @@ package com.ibm.uk.hursley.perfharness;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import com.ibm.uk.hursley.perfharness.stats.ResponseTimeStats;
-import com.sun.jndi.toolkit.ctx.AtomicDirContext;
 
 /**
  * Base class for all varieties of test.  This class implements a several variations
@@ -44,7 +44,6 @@ public abstract class WorkerThread extends java.lang.Thread {
 	private final AtomicLong    maxTime = new AtomicLong(0); 
 	private final AtomicLong    totalTime = new AtomicLong(0); 
 	private long   overallTotalTime = 0; 
-	private double overallM2 = 0; 
 	
 	private final boolean transactionResponseStats = Config.isRegistered(ResponseTimeStats.class);
 
@@ -57,7 +56,13 @@ public abstract class WorkerThread extends java.lang.Thread {
 	private long responseEndTime = 0;
 	private long responseTime = 0;
 	private boolean responseTimeStarted = false;
-
+	
+	//Store responses from first 100,000 messages
+	private long responseArray[];
+	private int responseArrayIndex = 0;
+	private static int RESPONSE_ARRAY_LEN=100000;
+	
+	
 	// Online variance
 	double onlineVarianceMean = 0;
 	double onlineVarianceM2 = 0;
@@ -143,6 +148,11 @@ public abstract class WorkerThread extends java.lang.Thread {
 		// We have to specify a name to the superclass.  It is expected subclasses will immediately change this.
 		super(ControlThread.getWorkerThreadGroup(), "dummy");
 		threadnum = nextThreadNum.getAndIncrement();
+		
+		if (transactionResponseStats) {
+			responseArray = new long[RESPONSE_ARRAY_LEN];
+		}
+
 	}
 
 	/**
@@ -191,14 +201,21 @@ public abstract class WorkerThread extends java.lang.Thread {
 			// Update the worst response time for this thread
 			maxTime(responseTime);
 
-			// Update the worst response time for this thread
+			// Update the total response time for this thread
 			totalTime(responseTime);
 
+			// Update the response time array
+			if (responseArrayIndex >= RESPONSE_ARRAY_LEN) {
+				// Array full, could calc percentiles now, but probably better to 
+				// wait until called from Stats module
+			} else {
+				responseArray[responseArrayIndex++] = responseTime;
+			}
+			
 			// calculate online variance
 			onlineVarianceDelta = responseTime - onlineVarianceMean;
 			onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
 			onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
-			overallM2 = onlineVarianceM2;
 
 			responseTime = 0;
 			responseStartTime = 0;
@@ -207,6 +224,50 @@ public abstract class WorkerThread extends java.lang.Thread {
 		return val;
 	}
 
+	public final long[] calculatePercentiles() {
+		long[] results = new long[4];
+
+//		for (int i=0; i<responseArrayIndex; i++) {
+//			System.err.println(responseArray[i]);
+//		}
+
+		//If array not full, then we need a shorten version before sorting
+		if (responseArrayIndex < RESPONSE_ARRAY_LEN) {
+			responseArray = Arrays.copyOf(responseArray, responseArrayIndex);
+		}
+		Arrays.sort(responseArray);
+	
+//Average (required for variance/stddev)		
+//		long total = 0;
+//		double average = 0;
+//		double variance = 0;
+		
+//		for (int i=0; i<responseArrayIndex; i++) {
+//			total += responseArray[i];
+//		}
+//		average = (double) total/responseArrayIndex;
+
+//		Std deviation already calculated using running variance
+//		for (int i=0; i<responseArrayIndex; i++) {
+//			variance += ((responseArray[i]-average) * (responseArray[i]-average));
+//		}
+//		variance = variance/responseArrayIndex;
+//		stdev = Math.sqrt(variance);
+				
+		int medianIndex = (int) (responseArrayIndex * 0.5);
+		int k95Index = (int) (responseArrayIndex * 0.95);
+		int k97Index = (int) (responseArrayIndex * 0.97);
+		int k99Index = (int) (responseArrayIndex * 0.99);
+
+		results[0] = responseArray[medianIndex];
+		results[1] = responseArray[k95Index];
+		results[2] = responseArray[k97Index];
+		results[3] = responseArray[k99Index];
+		
+		return results;
+	}
+
+	
 	protected final void startResponseTimePeriod() {
 		// Only record if tracking response times
 		if (transactionResponseStats) {

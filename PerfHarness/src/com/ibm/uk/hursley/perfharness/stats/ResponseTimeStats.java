@@ -12,7 +12,6 @@
  */
 package com.ibm.uk.hursley.perfharness.stats;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.TimerTask;
@@ -154,8 +153,6 @@ public class ResponseTimeStats extends Statistics {
 		double totalRate = 0;
 		int counted = 0;
 		
-		DecimalFormat df = new DecimalFormat("#.0");
-		
 		ArrayList<StringBuilder> workerStats = new ArrayList<StringBuilder>();
 		
 		if ( Config.parms.getBoolean("su") ) {
@@ -215,16 +212,24 @@ public class ResponseTimeStats extends Statistics {
 				
 				stdDev = worker.getResponseTimeStdDev();
 
+				long[] percentileResults = new long[2];
+				percentileResults = worker.calculatePercentiles(); 
+				
 				// Add data to entry
+				sb.append("|");
 				sb.append(pad(worker.getThreadNum()));
 				sb.append(pad(iterations));
-				sb.append(pad(df.format(duration/(1000))));
-				sb.append(pad(df.format(rate)));
+				sb.append(pad(numberFormat.format((double) duration/(1000))));
+				sb.append(pad(numberFormat.format(rate)));
 				sb.append("|");
 				sb.append(pad(totalTime/iterations));				
 				sb = (minTime == 999999999)? sb.append(pad("N/A")) : sb.append(pad(minTime));
 				sb = (maxTime == 0)? sb.append(pad("N/A")) : sb.append(pad(maxTime));				
-				sb.append(pad(df.format(stdDev)));
+				sb.append(pad(numberFormat.format(stdDev)));
+				sb.append(pad(percentileResults[0]));
+				sb.append(pad(percentileResults[1]));
+				sb.append(pad(percentileResults[2]));
+				sb.append(pad(percentileResults[3]));
 				sb.append("|");
 				
 				workerStats.add(sb);
@@ -237,18 +242,17 @@ public class ResponseTimeStats extends Statistics {
 
 			} // end while workers
 			 			
-   			System.out.println("==================");
-   			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
-   			System.out.println("                                                                                |                                 ResponseTimes                                  |");
-			System.out.println(pad("Thread Number") + pad("Iterations") + pad("Duration") + pad("Average MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") + pad("Standard Deviation") + "|");
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
+   			System.out.println("|------------------------------------------------|------------------------------------------------------------------------------------------------|");
+   			System.out.println("|                                                |                                 ResponseTimes (microseconds)                                   |");
+			System.out.println("|" + pad("Thread") + pad("Iterations") + pad("Duration") + pad("MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") + pad("Std Dev") + pad("Median") + pad("95th%") + pad("97th%") + pad("99th%") + "|");
+			System.out.println("|------------------------------------------------|------------------------------------------------------------------------------------------------|");
    			
 			for(StringBuilder sb : workerStats) {
    				System.out.println(sb.toString());
    			}
 			
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
-			System.out.println(pad("OVERALL:") +
+			System.out.println("|------------------------------------------------|------------------------------------------------------------------------------------------------|");
+			System.out.println("|" + pad("OVERALL:") +
 					pad(totalIterations) +
 					pad(numberFormat.format(totalDuration/(1000*counted))) +
 					pad(numberFormat.format(totalRate)) +
@@ -256,7 +260,11 @@ public class ResponseTimeStats extends Statistics {
 					pad("" + totalOverallResponseTime/totalIterations) +
 					pad("" + minOverallResponseTime) +
 					pad("" + maxOverallResponseTime) +
-					pad("---"));
+					pad("---") +
+					pad("---") +
+					pad("---") +
+					pad("---") +
+				    pad("---") + "|");
 			
 		} // end if su
 		
@@ -271,7 +279,7 @@ public class ResponseTimeStats extends Statistics {
 	}
 	
 	private String pad(String s) {
-		String s2 = String.format("%1$"+20+ "s", s);
+		String s2 = String.format("%1$"+12+ "s", s);
 		return s2;
 	}
 		
