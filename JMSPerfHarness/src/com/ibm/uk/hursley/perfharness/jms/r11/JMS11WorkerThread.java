@@ -71,6 +71,8 @@ public abstract class JMS11WorkerThread extends WorkerThread {
     protected final int commitCount = Config.parms.getInt("cc");
     protected final int expiry = Config.parms.getInt("ex");
     protected final int priority = Config.parms.getInt("pr");
+    protected final int commitDelay = Config.parms.getInt("cd");		
+    protected final boolean commitDelayMsg = Config.parms.getBoolean("cdm");
     
     boolean ignoreExceptions = false;
     

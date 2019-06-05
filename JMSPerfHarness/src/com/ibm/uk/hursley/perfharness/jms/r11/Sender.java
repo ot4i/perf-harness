@@ -80,10 +80,18 @@ public class Sender extends JMS11WorkerThread implements WorkerThread.Paceable {
 	 * @see com.ibm.uk.hursley.perfharness.WorkerThread.Paceable#oneIteration()
 	 */
 	public boolean oneIteration() throws Exception {
-		
+		startResponseTimePeriod();
 		messageProducer.send( outMessage, deliveryMode, priority, expiry );				
 		
-		if ( transacted && (getIterations()+1)%commitCount==0 ) session.commit();
+		if ( transacted && (getIterations()+1)%commitCount==0 ) {
+		   if(commitDelay > 0) {
+		      if(commitDelayMsg){
+		         Log.logger.log(Level.INFO, "Delaying " + (commitDelay) + " milliseconds before each commit");
+			  }
+			  Thread.sleep(commitDelay);
+		   }
+	       session.commit();
+		}
 		incIterations();
 		
 		return true;

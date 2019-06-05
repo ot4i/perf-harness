@@ -1,0 +1,876 @@
+FloodPublisher
+ Generates message to be published to a topic.
+
+tpt	 Topic per thread
+	 Type = java.lang.Boolean (default:  false)
+mr	 Limits the message rate per second.
+	 Type = java.lang.Integer (default:  )
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+FloodSubscriber
+ Read messages from the subscribed topic as fast as possible.
+
+tpt	 Topic per thread
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+MQProvider
+ Provides access to AMQP API
+
+qs	 The Quality of service(QOS) 0 = at most once, 1 = at least once.
+	 Type = java.lang.String (default:  )
+mf	 External file to use as message contents.
+	 Type = java.lang.String (default: )
+gr	 The shared name for the consumer to be associated with
+	 Type = java.lang.String (default:  )
+wo	 Number of messages sent before a response message is written to a file
+	 Type = java.lang.Integer (default:  0)
+mi	 Message send and receive per iteration.
+	 Type = java.lang.Integer (default:  1)
+jms	
+	 Type = java.lang.Boolean (default:  false)
+jp	 Port to connect to.
+	 Type = java.lang.Integer (default:  5672)
+it	 Prefix name for the private inbound topic.
+	 Type = java.lang.String (default:  REPLY)
+jl	 SSLCipherSuite name
+	 Type = java.lang.String (default:  )
+mt	 Message type is use within the test. Options String or Buffer
+	 Type = java.lang.String (default:  String)
+dm	 Defines the format of the message to be send. Options are String or Buffer (Binary).
+	 Type = java.lang.String (default:  String)
+jh	 Host to connect to.
+	 Type = java.lang.String (default:  localhost)
+ms	 Message size in bytes.
+	 Type = java.lang.Integer (default:  1000)
+ttl	 The Time-To-Live(TTL) value associated with sent and subscribed messages.
+	 Type = java.lang.String (default:  )
+lc	 The link credit value; number of message that can be received before confirmation.
+	 Type = java.lang.String (default:  )
+ws	 Write last response message to the screen on shutdown
+	 Type = java.lang.Integer (default:  1)
+ot	 Name of the shared outbound topic.
+	 Type = java.lang.String (default:  REQUEST)
+fl	 Force a failure if connection to server is lost.
+	 Type = java.lang.Boolean (default:  true)
+ac	 Mode of confirmation of received message. Auto = automatic confirmation, Manual = confirm after reception,  confirm-after-sent = confirm once the message has been sent on.
+	 Type = java.lang.String (default:  )
+qt	
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Publisher
+ Basic send message only
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Requestor
+ Simulate a requestor harness where messages are replaced on the request topic  and messages are are taken off a reply topic
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Responder
+ Simulate a responder harness where messages are taken off a request topic and placed on a reply topic.
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Subscriber
+ basic AMQP subscription only.
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+HTTPProvider
+ Provides access to communicate with an HTTP server.
+
+el	 Number of errors permitted per client thread
+	 Type = java.lang.Integer (default:  0)
+ea	 Allow errors
+	 Type = java.lang.Boolean (default:  false)
+au	 Specify username and password for HTTP basic auth in the form <username>:<password> 
+	 Type = java.lang.String (default: )
+cs	 Close socket after each message. Set to use a new HTTP connectio for each request.
+	 Type = java.lang.Boolean (default:  false)
+cr	 Connection reset.
+	 Type = java.lang.Integer (default:  0)
+es	 Period to sleep for between connection retries when errors allowed (ms)
+	 Type = java.lang.Integer (default:  1000)
+ps	 Comma-separated list of security protocols to be enabled on the socket
+	 Type = java.lang.String (default: )
+nm	 Number of messages to send for each thread
+	 Type = java.lang.Integer (default:  0)
+px	 Send absoluteURI in HTTP header request URI, required when requests sent to a proxy.
+	 Type = java.lang.Boolean (default:  false)
+to	 Timeout (millis) on receiving an HTTP response back from server
+	 Type = java.lang.Integer (default:  10000)
+pa	 Pattern for sending multiple different messages: 0=cycle (default), 1=prime, 2=thread
+	 Type = java.lang.Integer (default:  0)
+rb	 Size of the receive buffer in bytes in which the HTTP Reply message is read. This MUST be big enough for the reply message.
+	 Type = java.lang.Integer (default:  16384)
+ri	 Response interval (millis) for checking for asynchronous shutdown request signals
+	 Type = java.lang.Integer (default:  500)
+dn	 Multi-port numeric range.
+	 Type = java.lang.Integer (default:  0)
+wo	 Number of messages sent before a reponse message is written to a file
+	 Type = java.lang.Integer (default:  0)
+jp	 HTTP Listener Port to connect to.
+	 Type = java.lang.Integer (default:  7080)
+jh	 Hostname of server to connect to.
+	 Type = java.lang.String (default:  localhost)
+hc	 Specify a value of the content type header
+	 Type = java.lang.String (default:  text/xml)
+he	 Specify the name of a file to pull in extra HTTP headers from
+	 Type = java.lang.String (default:  )
+mf	 External file to use as message contents.
+	 Type = java.lang.String (default: )
+mc	 Number of HTTP requests to send before renewing an HTTP persistent connection. 
+	 Type = java.lang.Integer (default:  0)
+ur	 URL of servlet to send data to
+	 Type = java.lang.String (default:  "/")
+ms	 Time (millis) that client sleeps after sends/receives a msg.
+	 Type = java.lang.Integer (default:  0)
+sl	 Time (millis) that client sleeps after sends/receives a msg.
+	 Type = java.lang.Integer (default:  0)
+ws	 Write last response message to the screen on shutdown
+	 Type = java.lang.Integer (default:  0)
+sa	 Specify a SOAPAction: Tag in the header.The value is the value  of the SOAPAction field.
+	 Type = java.lang.String (default:  )
+ot	 HTTP1.1 operation type: POST | GET
+	 Type = java.lang.String (default:  POST)
+se	 Use secure transport
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+HTTPPutURL
+ Provides access to communicate with an HTTP server.
+
+mf	 External file to use as message contents.
+	 Type = java.lang.String (default: )
+nm	 Number of messages to send for each thread
+	 Type = java.lang.Integer (default:  0)
+rs	 String to replace with a counter in the message
+	 Type = java.lang.String (default:  null)
+jp	 HTTP Listener Port to connect to.
+	 Type = java.lang.Integer (default:  7080)
+ur	 URL of servlet to send data to
+	 Type = java.lang.String (default:  "/")
+to	 Timeout (millis) on receiving an HTTP response back from server
+	 Type = java.lang.Integer (default:  10000)
+jh	 Hostname of server to connect to.
+	 Type = java.lang.String (default:  localhost)
+sl	 Time (millis) that client sleeps after sends/receives a msg.
+	 Type = java.lang.Integer (default:  0)
+cs	 Close socket after each message. Set to use a new HTTP connectio for each request.
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+HTTPRequestor
+ Sends a HTTP message to a WebServer queue then waits for a response on the same connection.
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+TCPIPProvider
+ Provides access to communicate with a TCP or HTTP server.
+
+dn	 Multi-port numeric range.
+	 Type = java.lang.Integer (default:  0)
+ps	 Comma-separated list of security protocols to be enabled on the socket
+	 Type = java.lang.String (default: )
+mf	 External file to use as message contents (a comma-separated list ca be used in conjuction with -pa)
+	 Type = java.lang.String (default: )
+nm	 Number of messages to send for each thread
+	 Type = java.lang.Integer (default:  0)
+mc	 Number of TCP messages to send before renewing a TCP persistent connection.
+	 Type = java.lang.Integer (default:  0)
+wo	 Number of messages sent before a reponse message is written to a file
+	 Type = java.lang.Integer (default:  0)
+hl	 Specifies that an HL7 message is being sent. Prepends the message with 0x0B and appends 0x1C 0x0D
+	 Type = java.lang.Boolean (default:  false)
+jp	 HTTP Listener Port to connect to.
+	 Type = java.lang.Integer (default:  7080)
+ur	 URL of servlet to send data to
+	 Type = java.lang.String (default:  "/")
+to	 Timeout (millis) on receiving a TCP response back from server
+	 Type = java.lang.Integer (default:  10000)
+pa	 Pattern for sending multiple different messages: 0=cycle (default), 1=prime, 2=thread
+	 Type = java.lang.Integer (default:  0)
+jh	 Hostname of server to connect to.
+	 Type = java.lang.String (default:  localhost)
+ms	 Time (millis) that client sleeps after sends/receives a msg.
+	 Type = java.lang.Integer (default:  0)
+sl	 Time (millis) that client sleeps after sends/receives a msg.
+	 Type = java.lang.Integer (default:  0)
+cs	 Close socket after each message. Set to use a new HTTP connectio for each request.
+	 Type = java.lang.Boolean (default:  false)
+hc	 Specify a value of the content type header
+	 Type = java.lang.String (default:  text/xml)
+sa	 Specify a SOAPAction: Tag in the header.The value is the value of the SOAPAction field.
+	 Type = java.lang.String (default:  no SOAPAction Header)
+rb	 Size of the receive buffer in bytes in which the TCP or HTTP reply message is read. For HTTP, this must be an integer large enough to hold the largest of the responses; for TCP, this must be an exact specification of the response sizes. In the latter case, a comma-separated list may be used in conjuction with -pa, specifying the expected response length for each request message defined using -mf (obviously, if there is only one request message, an integer will suffice here). Missing elements are substituted with the default.
+	 Type = java.lang.String (default:  10000)
+ri	 Response interval (millis) for checking for asynchronous shutdown request signals
+	 Type = java.lang.Integer (default:  500)
+se	 Use secure transport
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+TCPIPRequestor
+ Sends a HTTP message to a WebServer queue then waits for a response on the same connection.
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+DefaultMessageFactory
+ Creates random messages or uses a designated file as the message contents.
+
+mf	 External file to use as message contents.
+	 Type = java.lang.String (default: )
+co	 Use correlation-id on requests.
+	 Type = java.lang.Boolean (default:  false)
+mt	 Message type (text,bytes,stream,map,object,empty,ebcdic).
+	 Type = java.lang.String (default:  text)
+pf	 JMS properties file
+	 Type = java.lang.String (default: )
+ms	 Message size in bytes.
+	 Type = java.lang.Integer (default:  1000)
+cp	 Use provider-specific correlation-id if possible.
+	 Type = java.lang.Boolean (default:  true)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+AbstractJMSProvider
+ Abstract superclass of all JMS providers supported by this tool.
+
+pr	 Defines the priority of message. 4 is defined as the default by the JMS1.1 spec.
+	 Type = java.lang.Integer (default:  4)
+pp	 Use persistent messages.
+	 Type = java.lang.Boolean (default:  false)
+ro	 Connection retry time (s).  The period during which (any number of) retries will be attempted.  0 means no reconnections are attempted.
+	 Type = java.lang.Long (default:  0)
+pw	 Password to authenticate as.
+	 Type = java.lang.String (default:  )
+tx	 Transactionality.
+	 Type = java.lang.Boolean (default:  false)
+to	 Polling timeout on synchronously receiving messages.
+	 Type = java.lang.Integer (default:  5)
+cc	 Commit count (transaction batching).
+	 Type = java.lang.Integer (default:  1)
+cdm	 Print message before each delay of commit.
+	 Type = java.lang.Boolean (default:  false)
+am	 JMS acknowledgement mode.
+	 Type = java.lang.Integer (default:  1)
+us	 Username to authenticate as.
+	 Type = java.lang.String (default:  )
+cd	 Time in milliseconds to wait between put and commit (commit delay). Can be used to introduce long running transactions.
+	 Type = java.lang.Integer (default:  0)
+pc	 JMS provider class.
+	 Type = com.ibm.uk.hursley.perfharness.jms.providers.JMSProvider (default:  JNDI)
+un	 Unsubscribe subscribers when closing.
+	 Type = java.lang.Boolean (default:  true)
+ex	 Defines message expiration. 0 means default expiration (never expires).
+	 Type = java.lang.Integer (default:  0)
+du	 Durable subscriptions.
+	 Type = java.lang.Boolean (default:  false)
+ri	 Connection retry interval (s).  
+	 Type = java.lang.Long (default:  1)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+JNDI
+ Provider-independant access to JMS resources.  If using JNDI, all destinatio names will be interpreted as the lookup name rather than the absolute name. JNDI properties may be set in several different ways, please consult the documetation.
+
+iz	 Set to true when using Suns JRE for WAS communication set into HashTable provided to InitialContext Additional properties need to be set when setting up InitialContext
+	 Type = java.lang.Boolean (default:  false)
+ipf	 A properties file that contains the initial context environment
+	 Type = java.lang.String (default: )
+iu	 JNDI providerURL.  May also be set via standard JNDI methods (see docs).
+	 Type = java.lang.String (default:  )
+cf	 JNDI name of ConnectionFactory.  Setting this property informs the tool that you intend to use JNDI lookups and any specific settings will be ignored.
+	 Type = java.lang.String (default:  )
+ii	 JNDI initialContextFactory.  May also be set via standard JNDI methods (see docs).
+	 Type = java.lang.String (default: )
+jf	 JNDI properties file
+	 Type = java.lang.String (default: )
+       All properties are provided to the InitialContext environment
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+WAS
+ Settings for direct connection to a WAS broker. This allows the tool to be run directly against this provider without the need for JNDI.  Note that this module inherits from JNDI module so those parameters are still applicable and that all parameters of this module be ignored if you do use JNDI.
+
+jp	 Port of provider host machine.
+	 Type = java.lang.Integer (default:  7276)
+bn	 SIBus Name
+	 Type = java.lang.String (default:  testbus)
+jh	 DNS/IP of provider host machine.
+	 Type = java.lang.String (default:  localhost)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+WBIMB
+ Settings for direct connection to a WebSphere Business Integration Message/Event Broker. This allows the tool to be run directly against this provider without the need for JNDI. Note that this module inherits from JNDI and WebSphereMQ modules so those parameters are still applicable and that all parameters of this module be ignored if you are use JNDI.
+
+jt	 WMQ transport (mqb,mqc,ip,ipmcr or ipmcn).
+	 Type = java.lang.String (default:  mqc)
+jf	 Use Fire and Forget/Streaming on the Message Sends/Publishes
+	 Type = java.lang.Boolean (default:  false)
+jq	 Publish queue.
+	 Type = java.lang.String (default:  PUBLISH)
+jz	 Subscriber buffer size in number of messages.
+	 Type = java.lang.Integer (default:  1000)
+jy	 Use Read Ahead Buffering when Receiving/Subscribing messages
+	 Type = java.lang.Boolean (default:  false)
+       Forces the Consumer to use Read Ahead buffering regardless of the values on the underlying MQ Queue or Topic
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+WMB
+ Settings for direct connection to a WebSphere Business Integration Message/Event Broker. This allows the tool to be run directly against this provider without the need for JNDI. Note that this module inherits from JNDI and WebSphereMQ modules so those parameters are still applicable and that all parameters of this module be ignored if you are use JNDI.
+
+jt	 WMQ transport (mqb,mqc,ip,ipmcr or ipmcn).
+	 Type = java.lang.String (default:  mqc)
+jf	 Use Fire and Forget/Streaming on the Message Sends/Publishes
+	 Type = java.lang.Boolean (default:  false)
+jq	 Publish queue.
+	 Type = java.lang.String (default:  PUBLISH)
+jz	 Subscriber buffer size in number of messages.
+	 Type = java.lang.Integer (default:  1000)
+jy	 Use Read Ahead Buffering when Receiving/Subscribing messages
+	 Type = java.lang.Boolean (default:  false)
+       Forces the Consumer to use Read Ahead buffering regardless of the values on the underlying MQ Queue or Topic
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+WebSphereMQ
+ Settings for direct connection to a WMQ broker. This allows the tool to be run directly against this provider without the need for JNDI.  Note that this module inherits from JNDI module so those parameters are still applicable and that all parameters of this module be ignored if you do use JNDI.
+
+jrc	 Switch the client's codepage conversion from client (CLIENT_MSG) to QM (QMGR)
+	 Type = java.lang.String (default: )
+ccdt	 Client channel definition table (CCDT) URL. Will use this CCDT if specified
+	 Type = java.lang.String (default:  )
+jx	 Enable optimistic pub-sub.
+	 Type = java.lang.Boolean (default:  false)
+jy	 Use Read Ahead Buffering when Receiving/Subscribing messages
+	 Type = java.lang.Boolean (default:  false)
+jt	 WMQ transport (mqb, mqc).
+	 Type = java.lang.String (default:  mqc)
+ju	 Use unique-queue-per-subscriber.
+	 Type = java.lang.Boolean (default:  true)
+jv	 Use the client in version mode
+	 Type = java.lang.Integer (default:  -1)
+jp	 Port of provider host machine (not used if ccdt is specified).
+	 Type = java.lang.Integer (default:  1414)
+jq	 Publish queue.
+	 Type = java.lang.String (default:  SYSTEM.BROKER.DEFAULT.STREAM)
+jr	 Use (older) QueueSubscriptionStore mechanism.
+	 Type = java.lang.Boolean (default:  false)
+js	 Use JMS reliable messaging.
+	 Type = java.lang.Boolean (default:  false)
+jl	 SSLCipherSuite name
+	 Type = java.lang.String (default:  )
+jm	 Determine whether to use CSP or compatibility mode when performing authentication
+	 Type = java.lang.Boolean (default:  false)
+jo	 Use JMS connection pooling.
+	 Type = java.lang.Boolean (default:  true)
+jh	 DNS/IP of provider host machine (not used if ccdt is specified).
+	 Type = java.lang.String (default:  localhost)
+je	 Auto-create topics using ME01 (when using JNDI).
+	 Type = java.lang.Boolean (default:  true)
+jf	 Use Fire and Forget/Streaming on the Message Sends/Publishes
+	 Type = java.lang.Boolean (default:  false)
+jg	 Communicate with non JMS application (targetClient=1)
+	 Type = java.lang.Boolean (default:  false)
+ja	 Publish acknowledgement interval (-1 = jms default).
+	 Type = java.lang.Integer (default:  -1)
+jb	 WMQ queue manager to connect to.
+	 Type = java.lang.String (default:  QM)
+jc	 WMQ Channel to connect to (not used if ccdt is specified).
+	 Type = java.lang.String (default:  SYSTEM.DEF.SVRCONN)
+bt	 WMQ trust level
+	 Type = java.lang.String (default:  std)
+       "std" is standard (default), "fp" is fastpath, "is" is isolated.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Publisher
+ Send messages to a Topic
+
+sn	 Number of different Message Selectors (default 10)
+	 Type = java.lang.Integer (default:  10)
+sl	 Use a Message Properties Selector String for Message Selection (default: false)
+	 Type = java.lang.String (default:  false)
+       none
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+PutGet
+ Sends a message then receives one from the same queue.  Normal usage is with correlation identifier to ensure the same message is received.
+
+up	 Determines if unidentified producers should be used. This is an option in JMS 1.1 and mandated in JMS 2.0 simplified API
+	 Type = java.lang.Boolean (default:  false)
+sl	 Use a Message Properties Selector String for Message Selection (default false)
+	 Type = java.lang.String (default:  false)
+       none
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Receiver
+ Receives messages from a Queue.  Currently this class, although JMS 1.1 compliant, is only coded to accept Queue-domain messages.  Use the Subscriber class for topic-domain messages.
+
+as	 Use asyncronous (onMessage) receiving mode.
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Requestor
+ Puts a message to a queue then waits for a reply on another queue.  The same  correlation-id is used for every request.  This is much faster for JMS applications.
+
+iq	 Queue to place requests on.
+	 Type = java.lang.String (default:  REQUEST)
+tqpm	 Use temporary queue per message.
+	 Type = java.lang.Boolean (default:  TRUE)
+oq	 Queue to place replies on.
+	 Type = java.lang.String (default:  REPLY)
+       Setting this value to "" implies the use of temporary queues for each reply.  Correlation-ids are not used in this mode.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Responder
+ Takes messages off the request queue and places the same message on the reply queue. Of note is that if correlation-ids are enabled (-co=true) the response will  copy the incoming messageID to that field. Otherwise it use that of the received message. 
+
+iq	 Queue to place requests on.
+	 Type = java.lang.String (default:  REQUEST)
+cr	 Copy request message to response.
+	 Type = java.lang.Boolean (default:  true)
+jfq	 Use fixed reply queue for requester. 
+	 Type = java.lang.Boolean (default:  false)
+oq	 Queue to place replies on (can be unspecified).
+	 Type = java.lang.String (default:  REPLY)
+       Setting this value to "" causes the use of temporary queues for each reply, using an anonymous MessageProducer.  Requests must specify a JMSReplyTo queue.  Any JMSReplyTo queue property overrides the default reply queue.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Sender
+ Send messages to a Queue.
+
+rq	 Queue to place replies on.
+	 Type = java.lang.String (default:  )
+       This sets the JMSReplyTo property. Messages are not got though.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+SeqPublisher
+ Publishes sequenced messages, allowing for checks of ordering, delivery percentage, and error checking.
+
+ck	 Checksum algorithm to use (CRC or Adler)
+	 Type = java.lang.String (default:  )
+       An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed much faster.  Checksumming is only available on Text and Bytes messages.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+SeqReceiver
+ Receives sequenced messages from a Queue, allowing for checks of ordering, delivery percentage, and error checking.
+
+ck	 Checksum algorithm to use (CRC or Adler)
+	 Type = java.lang.String (default:  )
+       An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed much faster.  Checksumming is only available on Text and Bytes messages.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+SeqSender
+ Sends sequenced messages to a queue, allowing for checks of ordering, delivery percentage, and error checking.
+
+ck	 Checksum algorithm to use (CRC or Adler)
+	 Type = java.lang.String (default:  )
+       An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed much faster.  Checksumming is only available on Text and Bytes messages.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+SeqSubscriber
+ Subscribes to sequenced messages, allowing for checks of ordering, delivery percentage, and error checking.
+
+ck	 Checksum algorithm to use (CRC or Adler)
+	 Type = java.lang.String (default:  )
+       An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed much faster.  Checksumming is only available on Text and Bytes messages.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Subscriber
+ Subscribe to Topic-domain messages
+
+as	 Use asyncronous onMessage method
+	 Type = java.lang.Boolean (default:  false)
+sn	 Number of different Message Selectors IDs
+	 Type = java.lang.Integer (default:  10)
+sm	 Manual Enter Message Selector ID
+	 Type = java.lang.Integer (default:  0)
+sl	 Use a Message Properties Selector String for Message Selection. Either 'auto' or 'manual'
+	 Type = java.lang.String (default:  false)
+ns	 Number of messageConsumers per Subscriber thread
+	 Type = java.lang.Integer (default:  1)
+sf	 Selector filter expression, passed in as the string when we create a consumer.
+	 Type = java.lang.String (default:  false)
+se	 Number of Selector's each Subscriber will match
+	 Type = java.lang.Integer (default:  1)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+AutoReconnectTimer
+ Sends/Receives messages in Put/get style from a queue on primary host and on failure will attempt to continue  message processing from secondary host
+
+h2	 Hostname/IP of secondary host machine (not used if ccdt is specified)
+	 Type = java.lang.String (default:  )
+p2	 Port of secondary host machine (not used if ccdt is specified)
+	 Type = java.lang.Integer (default:  )
+ft	 Reconnection timestamp format (u=UTC l=local timezone)
+	 Type = java.lang.String (default:  u)
+       Useful to have timestamps to match others (e.g. MQ error log detail contains UTC timestamps).
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+ReconnectTimer
+ Sends/Receives messages in Put/get style from a queue on primary host and on failure will attempt to continue  message processing from secondary host
+
+h2	 Hostname/IP of secondary host machine (not used if ccdt is specified)
+	 Type = java.lang.String (default:  secondaryHost)
+p2	 Port of secondary host machine (not used if ccdt is specified)
+	 Type = java.lang.Integer (default:  )
+ft	 Reconnection timestamp format (u=UTC l=local timezone)
+	 Type = java.lang.String (default:  u)
+       Useful to have timestamps to match others (e.g. MQ error log detail contains UTC timestamps).
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+MQCommandProcessor
+ Listens on an MQ Queue for commands calls super.processCommand to actio and replies to an MQ Queue with status/feedback
+
+cmd_p	 Port of provider host machine.
+	 Type = java.lang.Integer (default:  1414)
+cmd_jc	 WMQ Channel to connect to.
+	 Type = java.lang.String (default:  SYSTEM.DEF.SVRCONN)
+cmd_jh	 DNS/IP of provider host machine.
+	 Type = java.lang.String (default:  localhost)
+cmd_outq	 Websphere MQ Queue Name for command responses
+	 Type = java.lang.String (default:  CMD_REPLY)
+cmd_inq	 Websphere MQ Queue Name for incoming commands
+	 Type = java.lang.String (default:  CMD_REQUEST)
+cmd_jb	 WMQ queue manager to connect to.
+	 Type = java.lang.String (default:  QM)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+MQProvider
+ Provides access to WebSphere MQ classes for Java
+
+co	 Use correlation-id on requests.
+	 Type = java.lang.Boolean (default:  false)
+ir	 input to out put ratio, default =1  e.g. 3 means send 3 then get 1.
+	 Type = java.lang.Integer (default:  1)
+cv	 Correlation ID value.
+	 Type = java.lang.String (default:  )
+pp	 Use persistent messages.
+	 Type = java.lang.Boolean (default:  false)
+tx	 Transactionality.
+	 Type = java.lang.Boolean (default:  false)
+to	 Polling timeout on receiving messages (0 means forever).
+	 Type = java.lang.Double (default:  5)
+rf	 Use RFH Header from msg file, as produced by RFHUtil. 
+	 Type = java.lang.Integer (default:  0)
+bf	 Force MQOO_BIND_NOT_FIXED for clusters.
+	 Type = java.lang.Boolean (default:  false)
+jt	 WMQ transport (mqb, mqbf, mqc).
+	 Type = java.lang.String (default:  mqc)
+jp	 Port to connect to.
+	 Type = java.lang.Integer (default:  1414)
+jl	 SSLCipherSuite name
+	 Type = java.lang.String (default:  )
+ws	 Write last response message to the screen on shutdown
+	 Type = java.lang.Integer (default:  0)
+jb	 WMQ queue manager to connect to.
+	 Type = java.lang.String (default:  QM)
+jc	 WMQ Channel to connect to.
+	 Type = java.lang.String (default:  SYSTEM.DEF.SVRCONN)
+me	 MQ Message Encoding.  This value is set on the MQ Message in the MQMessage.encodingfield field.
+	 Type = java.lang.Integer (default:  546)
+mf	 External file to use as message contents.
+	 Type = java.lang.String (default: )
+mc	 MQ Message Character Set.  This value is set on the MQ Message in the MQMessage.characterSet field.
+	 Type = java.lang.Integer (default:  1208)
+mi	 Use msg-id on requests.
+	 Type = java.lang.Boolean (default:  false)
+mq	 MQ message format. This value is set on the MQ Message in the MQMessage.format field.
+	 Type = java.lang.String (default:  MQSTR)
+ms	 Message size in bytes.
+	 Type = java.lang.Integer (default:  1000)
+jh	 Host to connect to.
+	 Type = java.lang.String (default:  localhost)
+or	 output to input ratio, default =1  e.g. 3 means put 1 then get 3 msgs, can used for pubsub fan out.
+	 Type = java.lang.Integer (default:  1)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+PutGet
+ Sends a message then receives one from the same queue.  Normal usage is with correlation identifier to ensure the same message is received.
+
+No properties for this class
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Receiver
+ Receives messages from a Queue.
+
+wo	 Number of messages sent before a reponse message is written to a file
+	 Type = java.lang.Integer (default:  0)
+       If this value is >0 then each client thread will write a response message to a file in the current dir called threadname.reponsemsg
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Requestor
+ Puts a message to a queue then waits for a reply on another queue.  In contrast to the JMS classes, a new correlation-id is used for every request if -co is specified.
+
+mdm	 Minimum numeric value to be appended to multi-destination queue names
+	 Type = java.lang.Integer (default:  2)
+iq	 Queue to place requests on.
+	 Type = java.lang.String (default:  REQUEST)
+qm	 Reply to  QueueManager to put messages to, replies will be local.
+	 Type = java.lang.String (default:  )
+mm	 New MQMessage object
+	 Type = java.lang.Integer (default:  0)
+wo	 Number of messages sent before a reponse message is written to a file
+	 Type = java.lang.Integer (default:  0)
+oq	 Queue to place replies on.
+	 Type = java.lang.String (default:  REPLY)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Responder
+ Takes messages off the request queue and places the same message on the reply queue. Of note is that if correlation-ids are enabled (-co=true) the response will  copy the incoming messageID to that field. Otherwise it use that of the received message.
+
+iq	 Queue to place requests on.
+	 Type = java.lang.String (default:  REQUEST)
+cr	 Copy request message to response.
+	 Type = java.lang.Boolean (default:  true)
+qm	 Reply to QueueManager.
+	 Type = java.lang.String (default:  )
+qq	 Reply to Queue.
+	 Type = java.lang.String (default:  )
+oq	 Queue to place replies on.
+	 Type = java.lang.String (default:  REPLY)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Sender
+ Send messages to a Queue.
+
+qq	 Reply to Queue.
+	 Type = java.lang.String (default:  )
+wo	 Number of messages sent before a reponse message is written to a file
+	 Type = java.lang.Integer (default:  0)
+qm	 Reply to QueueManager.
+	 Type = java.lang.String (default:  )
+mdm	 Minimum numeric value to be appended to multi-destination queue names
+	 Type = java.lang.Integer (default:  2)
+       If a multi-destination index is less than this value, then it will not be appended to the input/output queue names. I.e., if this value is set to 2 and the multi-destination numbering goes from 1 to 3, then the actual queue names used will be <inputqueue>, <outputqueue>, <intputqueue>2, <outputqueue>2, <inputqueue>3, <outputqueue>3. If the value 1 is used for the same numbering, the first pair of queues used will be <inputqueue>1 and <outputqueue>1.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Config
+ Centralises parsing, access and reporting of configuration parameters.
+
+hx	 Display help as XML.
+	 Type = java.lang.Boolean (default:  false)
+v	 Show version.
+	 Type = java.lang.Boolean (default:  false)
+h	 Display basic help on current configuration.
+	 Type = java.lang.Boolean (default:  false)
+hp	 Config properties filename.
+	 Type = java.lang.String (default:  )
+hm	 Display detailed help on a specific module or modules.
+	 Type = java.lang.String (default:  )
+hs	 Strict configuration checking.
+	 Type = java.lang.Boolean (default:  true)
+hf	 Display detailed help on current configuration.
+	 Type = java.lang.Boolean (default:  false)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+ControlThread
+ Manage the lifecycle of the application and any WorkerThreads. 
+
+wc	 WorkerThread parallel start count.
+	 Type = java.lang.Integer (default:  1)
+wk	 Shutdown wait (s).
+	 Type = java.lang.Integer (default:  120)
+wi	 WorkerThread start interval (ms).
+	 Type = java.lang.Integer (default:  1000)
+sh	 Use signal handler to trap SIGINT (CTRL-C).
+	 Type = java.lang.Boolean (default:  true)
+wt	 WorkerThread start timeout (s).
+	 Type = java.lang.Integer (default:  30)
+so	 Starts a socket shutdown thread on port specified
+	 Type = java.lang.Integer (default:  0)
+su	 Display final summary.
+	 Type = java.lang.Boolean (default:  true)
+wp	 Use parallel thread startup (fast).
+	 Type = java.lang.Boolean (default:  false)
+rl	 Run length in seconds.
+	 Type = java.lang.Integer (default:  60)
+nt	 Number of WorkerThreads.
+	 Type = java.lang.Integer (default:  1)
+id	 Process identifier.
+	 Type = java.lang.String (default:  )
+ct	 ControlThread instance to invoke in this application.
+	 Type = com.ibm.uk.hursley.perfharness.ControlThread (default:  ControlThread)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+DefaultDestinationFactory
+ Defines the allocation of destinations amongst multiple WorkerThreads. These options only control the *names* given to destination and it is up to the WorkerThread implementation how these names are interpreted.
+
+dn	 Multi-destination numeric range.
+	 Type = java.lang.Integer (default:  0)
+dr	 Generate destinations randomly within range specified by db,dn,dx
+	 Type = java.lang.Boolean (default:  false)
+db	 Multi-destination numeric base.
+	 Type = java.lang.Integer (default:  0)
+d	 Destination prefix.
+	 Type = java.lang.String (default:  DEST)
+dx	 Multi-destination numeric maximum.
+	 Type = java.lang.Integer (default:  0)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Log
+ Sets up JDK 1.4+ logging for the application.
+
+st	 Print full stack trace on error.
+	 Type = java.lang.Boolean (default:  true)
+vo	 Verbosity level for logging.  Messages below this level will not be logged.
+	 Type = java.lang.String (default:  INFO)
+       This must be parsable by java.util.logging.Level.parse().
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+MultiDestinationFactory
+ For WorkerThreads that can access (either publish or subscribe to) multiple destinations. Defines the allocation of destinations amongst multiple WorkerThreads. These options only control the *names* given to destination and it is up to the WorkerThread implementation how these names are interpreted.
+
+dn	 Multi-destination numeric range.
+	 Type = java.lang.Integer (default:  0)
+db	 Multi-destination numeric base.
+	 Type = java.lang.Integer (default:  0)
+d	 Destination prefix.
+	 Type = java.lang.String (default:  DEST)
+dx	 Multi-destination numeric maximum.
+	 Type = java.lang.Integer (default:  0)
+ds	 Multi-destination numeric start.
+	 Type = java.lang.Integer (default:  0)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+WorkerThread
+ Base class for all varieties of test.  This class implements a general pacing algorithm for those tests that wish to use it.  The performance overhead of this is minimal.
+
+rt	 Desired rate (operations/sec).
+	 Type = java.lang.Double (default:  0)
+mg	 Fixed number of iterations to run.
+	 Type = java.lang.Integer (default:  0)
+rp	 Time period (s) to ramp up to the full rate.
+	 Type = java.lang.Integer (default:  0)
+df	 Destination factory implementation.
+	 Type = com.ibm.uk.hursley.perfharness.DestinationFactory (default:  DefaultDestinationFactory)
+yd	 Frequency to call Thread.yield().
+	 Type = java.lang.Integer (default:  0)
+ln	 Use a logarithmic distribution to "randomise" a fixed rate. 
+	 Type = java.lang.Boolean (default:  false)
+tc	 Test definition class.
+	 Type = com.ibm.uk.hursley.perfharness.WorkerThread (default:  jms.r11.PutGet)
+       This defines the actual type of WorkerThreads that will be started.  The selections listed are those packaged with this tool, there may be others on the classpath that will not be shown here.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Command
+ This is a command server for the harness. It allows in-flight changing of\n
+
+cmd_c	 Command module to use.
+	 Type = com.ibm.uk.hursley.perfharness.cmd.Command (default:  DummyCommandProcessor)
+       
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+SocketCommandProcessor
+ Listens on a socket for incoming connections & passes commands through to the superclass
+
+cmd_p	 Local incoming port to listen on
+	 Type = java.lang.Integer (default:  4444)
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+BasicStats
+ Prints the instantaneous rate on a periodic basis.  The final summary is the average duration of the WorkerThreads and the total average rate they achieved during that period.
+
+mu	 Display memory usage.
+	 Type = java.lang.Boolean (default:  false)
+       This reports the number of bytes in use.  Freed memory awaiting  garbage collection is not counted as "used".
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+FileStats
+ Report simple instantaneous performance counters with Timestamps for synching with zOS Perf Counters. 
+
+zf	 Output text file of summary test results
+	 Type = java.lang.String (default:  summary.txt)
+       This is the output filename where all final results will be appended to.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+ResponseTimeStats
+ Prints the instantaneous response time on a periodic basis.  The final summary is the best, worse and average response times of the WorkerThreads during that period.
+
+mu	 Display memory usage.
+	 Type = java.lang.Boolean (default:  false)
+       This reports the number of bytes in use.  Freed memory awaiting  garbage collection is not counted as "used".
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+RollingAvgStats
+ Prints the average of performance over the last 30 seconds on a periodic basis.  The final summary is the average duration of the WorkerThreads and the maximum rolling average achieved during that period.
+
+sr	 Rolling average period (seconds).
+	 Type = java.lang.Integer (default:  30)
+       Performance is sampled every second, the number reported is the average over the last rolling average period.  During the first period, the figure reported is the average over the actual number of seconds elapsed.
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
+Statistics
+ This controls the aggregation and reporting of performance counters and allows multiple implementations to process and render statistics differently.
+
+sc	 Statistics module to use - options are BasicStats, ResponseTimeStats or RollingAvgStats.
+	 Type = com.ibm.uk.hursley.perfharness.stats.Statistics (default:  RollingAvgStats)
+ss	 Statistics reporting period.
+	 Type = java.lang.Integer (default:  10)
+sp	 Display per-thread iteration counts.
+	 Type = java.lang.Boolean (default:  false)
+sw	 Statistical discard period (seconds).
+	 Type = java.lang.Integer (default:  0)
+sd	 Sets what is reported as totalDuration.
+	 Type = java.lang.String (default:  normal)
+       "normal" = from 1st iteration to last iteration, excluding setup/takedown. "tlf" = Time to Last Fire, from start of main thread till last iteration completes (includes setup time but not takedown).
+
++---------------------------------------------------------------------------------------------------------------------------------+
+
