@@ -140,27 +140,9 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 			   cf.setPort(Config.parms.getInt("jp"));
 			   cf.setChannel(Config.parms.getString("jc"));
 			   cf.setSSLCipherSuite( sslCipherSuite );
-			   //if (Config.parms.getBoolean("ar")) {	
-			     // String firstHost=Config.parms.getString("jh")+"("+Config.parms.getString("jp")+")";
-       		     // String secondHost=Config.parms.getString("h2")+"("+Config.parms.getString("p2",Config.parms.getString("jp"))+")";
-       		     // cf.setConnectionNameList(firstHost+","+secondHost);
-			     // Log.logger.log( Level.INFO, "Enabling JMS auto-reconnect with namelist: "+cf.getConnectionNameList());
-			   //} 
 		   } else {
-			   //If a ccdt has been specified then we pick up the channel attributes from that, rather than from
-			   //the command line
 			   cf.setCCDTURL(ccdt);
-			   //if (Config.parms.getBoolean("ar")) {
-			   //   Log.logger.log( Level.INFO, "Enabling JMS auto-reconnect with ccdt");
-			   //   cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR);
-			  //	cf.setClientReconnectTimeout(100000);
-			   //}
 		   }
-			
-		   //if (Config.parms.getBoolean("ar")) {	
-		   //  cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR);
-	  	   //  cf.setClientReconnectTimeout(100000);
-		   //}
 		}
 		cf.setQueueManager(Config.parms.getString("jb"));
 		
