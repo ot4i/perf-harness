@@ -108,7 +108,7 @@ public class HTTPProvider extends TCPIPProviderBase {
 		if(!auth.isEmpty()) {
 			 try {
 				// Update to used java.util.Base64 in Java8
-	            header.append("Authorization: Basic " + DatatypeConverter.printBase64Binary(auth.getBytes("UTF-8")));
+	            header.append("Authorization: Basic " + DatatypeConverter.printBase64Binary(auth.getBytes("UTF-8")) + "\r\n");
             } catch (UnsupportedEncodingException uee) {
             	Log.logger.log(Level.SEVERE, "Error encoding based auth string " + auth, uee);
 	            System.exit(1);
