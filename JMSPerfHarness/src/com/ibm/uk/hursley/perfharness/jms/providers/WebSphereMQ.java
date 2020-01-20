@@ -144,6 +144,8 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 			   cf.setCCDTURL(ccdt);
 		   }
 		}
+		cf.setTemporaryModel(Config.parms.getString("jtm"));
+		cf.setTempQPrefix(Config.parms.getString("jtmp"));
 		cf.setQueueManager(Config.parms.getString("jb"));
 		
 		//Has no affect from WMQ V7 onwards - connection pooling removed
