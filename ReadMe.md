@@ -136,7 +136,7 @@ TCPIP Requestor:
 
 ## Docker
 
-There is a git repo that can help develop a dockerized version of JMSPerfHarness called (jmstestp)[https://github.com/ibm-messaging/jmstestp]
+There is a git repo that can help develop a dockerized version of JMSPerfHarness called [jmstestp](https://github.com/ibm-messaging/jmstestp)
 
 ## Additional Information
 For more in-depth documentation please refer to the PerfHarness manual in the PerfHarness/docs/ folder.
