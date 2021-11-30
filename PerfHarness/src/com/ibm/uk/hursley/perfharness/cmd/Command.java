@@ -62,7 +62,7 @@ public abstract class Command extends java.lang.Thread {
 	
 	protected String id = Config.parms.getString("id");
 	
-	protected volatile boolean shutdown = false;
+	public volatile boolean shutdown = false;
 	
 	/**
 	 * Register our presence and look up any required parameters for this class. 
