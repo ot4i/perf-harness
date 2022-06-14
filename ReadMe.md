@@ -1,8 +1,6 @@
 # Perfharness
 Perfharness is a flexible and modular Java package for performance testing of HTTP, JMS, MQ and other transport scenarios. It provides a complete set of transport functionality, as well as many other features such as throttled operation (a fixed rate and/or number of messages), multiple destinations, live performance reporting, JNDI. It is one of the many tools used by performance teams for IBM MQ and IBM Integration Bus in order to conduct tests ranging from a single client to more than 10,000 clients. Customers also use the tool to test their own systems and validate they perform accordingly.
 
-Perfharness has been available in binary form on [IBM AlphaWorks](https://ibm.biz/JMSPerfHarness) for a number of years. 
-
 ## Importing Perfharness into Eclipse.
 
 The top level folders in the repository are Eclipse projects. 
