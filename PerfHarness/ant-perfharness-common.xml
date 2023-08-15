@@ -9,12 +9,21 @@
 	* disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
 	********************************************************** {COPYRIGHT-END} -->
 
-<project name="ant-perfharness-common" default="-init">
+<project name="ant-perfharness-common" default="-init" xmlns:if="ant:if">
 
 	<target name="-init" >
 		
 		<!-- Any of the following values can be overriden by settings placed before the <import>
-		 in the lead project -->		
+		 in the lead project -->
+		<property name="jms.module" value="JMSPerfHarness" />
+		<property name="mq.module" value="MQJavaPerfHarness" />
+		<property name="http.module" value="HTTPPerfHarness" />
+		<property name="perf.module" value="PerfHarness" />
+				
+		<property name="include.jms" value="false" />
+		<property name="include.mq" value="false" />
+		<property name="include.http" value="false" />
+		
 		<property name="src.dir" value="src" />
 		<property name="dest.dir" value="bin" />
 		<property name="build.dir" value="build" />
@@ -52,12 +61,6 @@
 			<fileset dir=".">
 				<include name="**/**.jar"/>
 			</fileset>
-			<fileset dir="../PerfHarnessPrereqs">           	
-				<include name="IBM_WMQ_8/**.jar"/>
-			</fileset>
-			<fileset dir="../PerfHarnessPrereqs">           	
-				<include name="**/**.jar"/>
-			</fileset>
 			<fileset dir="../PerfHarnessPrereqs/">           	
 				<include name="**/**.jar"/>
 			</fileset>
@@ -65,34 +68,33 @@
 
 		<!-- First compile the Perfharness classes -->
        	<mkdir dir="${dest.dir}" />		
-    	<javac srcdir="${src.dir}"	destdir="${dest.dir}">
+    	<javac includeantruntime="false" srcdir="${src.dir}"	destdir="${dest.dir}">
         	<classpath refid="build-classpath"/>
 		</javac>
 		
-		<verifymodules modules="${perfharness.modules}" />
+		<verifymodule if:true="${include.jms}" module="${jms.module}" />
+		<verifymodule if:true="${include.mq}" module="${mq.module}" />
+		<verifymodule if:true="${include.http}" module="${http.module}" />
+		<verifymodule module="${perf.module}" />
+
+		<buildmodule if:true="${include.jms}" module="${jms.module}" />
+		<buildmodule if:true="${include.mq}" module="${mq.module}" />
+		<buildmodule if:true="${include.http}" module="${http.module}" />
+		<buildmodule module="${perf.module}" />
 		
-		<buildmodules modules="${perfharness.modules}" />
-		
-		<deletejarmodules modules="${perfharness.modules}" />
+		<deletejarmodule if:true="${include.jms}" module="${jms.module}" />
+		<deletejarmodule if:true="${include.mq}" module="${mq.module}" />
+		<deletejarmodule if:true="${include.http}" module="${http.module}" />
+		<deletejarmodule module="${perf.module}" />
 		
 	</target>
 	
 	<!--
-		# We need antlib to provide <for> task.  The jar is included in the PerfHarness root directory
-	-->
-	<taskdef resource="net/sf/antcontrib/antlib.xml">
-		<classpath>
-			<pathelement location="${perfharness.dir}/../PerfHarnessPrereqs/ant-contrib.jar" />
-		</classpath>
-	</taskdef>
-
-	<!--
 		# Create a jar file from the given module names. Order is important, any
 		# duplicate files are taken from the later modules.
 	-->
-	<macrodef name="jarmodules">
+	<macrodef name="initjar">
 		<attribute name="jar" />
-		<attribute name="modules" />
 		<sequential>
 			<delete verbose="true" file="@{jar}" />
 			<jar jarfile="@{jar}" compress="true" update="true">
@@ -112,34 +114,85 @@
 					</section>
 				</manifest>
 			</jar>
-			<for list="@{modules}" param="module" delimiter=", \t">
+		</sequential>
+	</macrodef>
+
+	<macrodef name="jarmodule">
+		<attribute name="jar" />
+		<attribute name="module" />
+		<sequential>
+			<echo>Including @{module}</echo>
+			<jar jarfile="@{jar}" compress="true"
+				update="true">
+				<fileset dir="../@{module}/${dest.dir}"
+					includes="**/*.class"/>
+				<fileset dir="../@{module}/${src.dir}"
+					includes="**/*.properties"/>
+			</jar>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="jarmodule2">
+		<attribute name="jar" />
+		<attribute name="module" />
+		<sequential>
+			<delete verbose="true" file="@{jar}" />
+			<jar jarfile="@{jar}" compress="true" update="true">
+				<manifest>
+					<attribute name="Built-By" value="${user.name}" />
+					<section name="com/ibm/uk/hursley/perfharness">
+						<attribute name="Specification-Title"
+							value="${copyright.name}" />
+						<attribute name="Specification-Version"
+							value="${copyright.version}" />
+						<attribute name="Specification-Vendor"
+							value="IBM" />
+						<attribute name="Implementation-Title"
+							value="com.ibm.uk.hursley.perfharness" />
+						<attribute name="Implementation-Vendor"
+							value="IBM" />
+					</section>
+				</manifest>
+			</jar>
+
 				<sequential>
 					<echo>Including @{module}</echo>
 					<jar jarfile="@{jar}" compress="true"
 						update="true">
 						<fileset dir="../@{module}/${dest.dir}"
-							includes="**/*.class" />
+							includes="**/*.class"/>
 						<fileset dir="../@{module}/${src.dir}"
-							includes="**/*.properties" />
+							includes="**/*.properties"/>
 					</jar>
 				</sequential>
-			</for>
 		</sequential>
 	</macrodef>
 
 	<!-- 
-		# Create a single directory with all of the given source files in. Order
-		# is important, any duplicate files are taken from the latter modules.
+		# Initialise zip file
 	-->
-	<macrodef name="zipsrcmodules">
+	<macrodef name="initzip">
 		<attribute name="zip" />
-		<attribute name="modules" />
 		<sequential>
 			<delete verbose="true" file="@{zip}" />
 			<zip update="true" zipfile="@{zip}">
 				<zipfileset prefix="${short.name}" dir="." includes="${version.file}" />
 			</zip>
-			<for list="@{modules}" param="module" delimiter=", \t">
+		</sequential>
+	</macrodef>
+	
+	<!-- 
+		# Create a single directory with all of the given source files in. Order
+		# is important, any duplicate files are taken from the latter modules.
+	-->
+	<macrodef name="zipsrcmodule">
+		<attribute name="zip" />
+		<attribute name="module" />
+		<sequential>
+			<delete verbose="true" file="@{zip}" />
+			<zip update="true" zipfile="@{zip}">
+				<zipfileset prefix="${short.name}" dir="." includes="${version.file}" />
+			</zip>
 				<sequential>
 					<echo>Including @{module}</echo>
 					<zip update="true" zipfile="@{zip}">
@@ -149,60 +202,48 @@
 						</zipfileset>
 					</zip>
 				</sequential>
-			</for>
 		</sequential>
 	</macrodef>
 
 	<!--
 		# Verify the given module names exist
 	-->
-	<macrodef name="verifymodules">
-		<attribute name="modules" />
+	<macrodef name="verifymodule">
+		<attribute name="module" />
 		<sequential>
-			<for list="@{modules}" param="module" delimiter=", \t">
-				<sequential>
-					<available file="../@{module}" type="dir"
-						property="@{module}.exists" />
-					<fail
-						message="@{module} cannot be found in your workspace."
-						unless="@{module}.exists" />
-				</sequential>
-			</for>
+			<available file="../@{module}" type="dir"
+				property="@{module}.exists" />
+				<fail
+					message="@{module} cannot be found in your workspace."
+					unless="@{module}.exists" />
 		</sequential>
 	</macrodef>
 	
-	<macrodef name="deletejarmodules">
-		<attribute name="modules" />
-		<sequential>
-			<for list="@{modules}" param="module" delimiter=", \t">
-				<sequential>
-			        <path id="jarfile">   
-			        	<fileset dir="../@{module}">
-							<include name="**/*"/>
-			       		</fileset>
-			        </path>
-				</sequential>
-			</for>
-		</sequential>
+	<macrodef name="deletejarmodule">
+		<attribute name="module" />
+			<sequential>
+			       <path id="jarfile">   
+			        <fileset dir="../@{module}">
+						<include name="**/*"/>
+			       	</fileset>
+			       </path>
+			</sequential>
 	</macrodef>
 
-	<macrodef name="buildmodules">
-		<attribute name="modules" />
+	<macrodef name="buildmodule">
+		<attribute name="module" />
 		<sequential>
-			<for list="@{modules}" param="module" delimiter=", \t">
-				<sequential>
-					<available file="../@{module}" type="dir"
-						property="@{module}.exists" />
-					<fail
-						message="@{module} cannot be found in your workspace."
-						unless="@{module}.exists" />
-					<!-- delete dir="../@{module}/${dest.dir}" / -->
-					<mkdir dir="../@{module}/${dest.dir}" />
-					<javac srcdir="../@{module}/src" destdir="../@{module}/bin">
-						<classpath refid="build-classpath"/>
-					</javac>
-				</sequential>
-			</for>
+				<available file="../@{module}" type="dir"
+					property="@{module}.exists" />
+				<fail
+					message="@{module} cannot be found in your workspace."
+					unless="@{module}.exists" />
+				<!-- delete dir="../@{module}/${dest.dir}" / -->
+				<mkdir dir="../@{module}/${dest.dir}" />
+				<javac includeantruntime="false" srcdir="../@{module}/src" destdir="../@{module}/bin">
+					<classpath refid="build-classpath"/>
+				</javac>
+
 		</sequential>
 	</macrodef>
 
@@ -258,11 +299,21 @@ build.id=${bld.id}
 	</target>
 	
 	<target name="-package-src" depends="-init, -version, jar">
-		<zipsrcmodules zip="${srczip.file}" modules="${perfharness.modules}"/>
+		<initzip zip="${srczip.file}" />
+		
+		<zipsrcmodule if:true="${include.jms}" zip="${srczip.file}" module="${jms.module}" />
+		<zipsrcmodule if:true="${include.mq}" zip="${srczip.file}" module="${mq.module}" />
+		<zipsrcmodule if:true="${include.http}" zip="${srczip.file}" module="${http.module}" />
+		<zipsrcmodule zip="${srczip.file}" module="${perf.module}" />
 	</target>
 	
 	<target name="jar" depends="-init, -version" description="Make a jar file">
-		<jarmodules jar="${jar.file}" modules="${perfharness.modules}" />
+		<initjar jar="${jar.file}" />
+		
+		<jarmodule if:true="${include.jms}" jar="${jar.file}" module="${jms.module}" />
+		<jarmodule if:true="${include.mq}" jar="${jar.file}" module="${mq.module}" />
+		<jarmodule if:true="${include.http}" jar="${jar.file}" module="${http.module}" />
+		<jarmodule jar="${jar.file}" module="${perf.module}" />
 	</target>
 
 	<target name="-unknown-build">

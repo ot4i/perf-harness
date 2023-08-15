@@ -9,16 +9,15 @@
 * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
 ********************************************************** {COPYRIGHT-END} -->
 <project name="jmsperfharness" default="jar" basedir=".">
-
 	<!-- This is used to name the various generated files -->
 	<property name="short.name" value="${ant.project.name}" />
 
-	<!-- Order of modules is important - precedence is given to the left when names overlap -->
-	<property name="perfharness.modules" value="JMSPerfHarness PerfHarness" />
+	<!-- Only include jms additional module (PerfHarness is always included) -->
+	<property name="include.jms" value="true" />
 
 	<!-- This is the name by which the packaged code will identify itself -->
-		<property name="copyright.name" value="IBM Performance Harness for HTTP" />
-	
+		<property name="copyright.name" value="IBM Performance Harness for HTTP" />	
+
 	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
 	<property name="perfharness.dir" location="../PerfHarness" />
 	<import file="${perfharness.dir}/ant-perfharness-common.xml" />

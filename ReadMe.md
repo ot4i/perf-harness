@@ -43,8 +43,6 @@ Building Perfharness in Eclipse requires some extra dependancies importing to th
     * jms.jar
     * com.ibm.mq.allclient.jar
 
-* ant-contrib.jar (Always required)
-
 See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ V9: [Developing JMS and Java applications](https://www.ibm.com/support/knowledgecenter/SSFKSJ_9.0.0/com.ibm.mq.dev.doc/q118320_.html)
 
 
