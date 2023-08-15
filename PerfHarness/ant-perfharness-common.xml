@@ -131,42 +131,6 @@
 			</jar>
 		</sequential>
 	</macrodef>
-	
-	<macrodef name="jarmodule2">
-		<attribute name="jar" />
-		<attribute name="module" />
-		<sequential>
-			<delete verbose="true" file="@{jar}" />
-			<jar jarfile="@{jar}" compress="true" update="true">
-				<manifest>
-					<attribute name="Built-By" value="${user.name}" />
-					<section name="com/ibm/uk/hursley/perfharness">
-						<attribute name="Specification-Title"
-							value="${copyright.name}" />
-						<attribute name="Specification-Version"
-							value="${copyright.version}" />
-						<attribute name="Specification-Vendor"
-							value="IBM" />
-						<attribute name="Implementation-Title"
-							value="com.ibm.uk.hursley.perfharness" />
-						<attribute name="Implementation-Vendor"
-							value="IBM" />
-					</section>
-				</manifest>
-			</jar>
-
-				<sequential>
-					<echo>Including @{module}</echo>
-					<jar jarfile="@{jar}" compress="true"
-						update="true">
-						<fileset dir="../@{module}/${dest.dir}"
-							includes="**/*.class"/>
-						<fileset dir="../@{module}/${src.dir}"
-							includes="**/*.properties"/>
-					</jar>
-				</sequential>
-		</sequential>
-	</macrodef>
 
 	<!-- 
 		# Initialise zip file
