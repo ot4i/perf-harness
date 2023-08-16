@@ -2,8 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="src" path="/PerfHarness"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/com.ibm.mq.allclient.jar"/>
+	<classpathentry kind="src" path="/PerfHarness"/>
 	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/jms.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/com.ibm.mq.allclient.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/QPID_JMS/qpid-jms-client-0.51.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
