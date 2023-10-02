@@ -1,0 +1,14 @@
+alter qmgr maxmsgl(104857600)
+alter channel(system.def.svrconn) chltype(svrconn) mcauser('mqm') maxmsgl(104857600)
+alter channel(system.def.amqp) chltype(amqp) mcauser('mqm') maxmsgl(104857600)
+alter qlocal(system.default.local.queue) maxmsgl(104857600)
+alter qmodel(system.default.model.queue) maxmsgl(104857600)
+
+define channel(system.admin.svrconn) chltype(svrconn) mcauser('mqm') replace
+alter qmgr chlauth(disabled)
+alter channel(SYSTEM.DEF.SVRCONN) chltype(SVRCONN) sharecnv(1)
+
+alter authinfo(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) authtype(IDPWOS) chckclnt(OPTIONAL)
+refresh security(*) type(CONNAUTH)
+
+start channel(system.def.amqp)
