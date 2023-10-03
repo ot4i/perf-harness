@@ -143,3 +143,4 @@ There is a git repo that can help develop a dockerized version of JMSPerfHarness
 
 ## Additional Information
 For more in-depth documentation please refer to the PerfHarness manual in the [PerfHarness/doc](./PerfHarness/doc) folder.
+A tutorial on running a JMS performance test with perfharness is available in the [PerfHarness/samples](./samples) folder [here](./samples/jmsperfharness_tutorial1.md).
