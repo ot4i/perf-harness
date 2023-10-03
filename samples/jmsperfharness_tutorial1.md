@@ -91,31 +91,31 @@ Now you’re ready to build the PerfHarness project. There are several Ant scrip
 Now PerfHarness has been built, a performance test can be run, using the perfharness.jar generated.
 
 ### Step 2: Setup the queue manager
-Sample scripts (for Linux) to set-up the queue manager used in this test scenario (rr_1) and run  PerfHarness clients are in the  samples/rr_1 directory.
+Sample scripts (for Linux) to set-up the queue manager used in this test scenario (rr_1) and run  PerfHarness clients are in the [samples/rr_1](./rr_1) directory
 
-Review the config.sh script to setup various parameters used in the test, including the queue manager name, listener port, hostname etc. Also included in this configuration files are options to specify the cipher used in a TLS test, along with the java keystore location and password. 
+Review the [config.sh](./rr_1/config.sh) script to setup various parameters used in the test, including the queue manager name, listener port, hostname etc. Also included in this configuration files are options to specify the cipher used in a TLS test, along with the java keystore location and password. 
 
-Once you’re happy with the contents of config.sh then go into the samples/rr_1/qm_setup directory and run the “setup_mq_server.sh” script to create your queue manager (named ‘PERF0’ by default) with the necessary objects required for a JMSPerfHarness requester/responder test. The mqsc files used will create 20 pairs of request/reply queues, you can edit these if you want more. 
+Once you’re happy with the contents of config.sh then go into the [samples/rr_1/qm_setup](./rr_1/qm_setup) directory and run the “setup_mq_server.sh” script to create your queue manager (named ‘PERF0’ by default) with the necessary objects required for a JMSPerfHarness requester/responder test. The mqsc files used will create 20 pairs of request/reply queues, you can edit these if you want more. 
 <dl>
 <dt>TLS Configuration</dt>
-<dd>If you run a TLS test it is assumed the keystores for the queue manager have already been setup correctly. correctly. A svrconn channel will be created with the SSLCIPH attribute set to the cipherspec value specified in config.sh. The location of the  Java keystore used by the client will need to be specified in the configuration file, along with the password. 
-<p><p>If you want to run a TLS  test with QPID JMS then the AMQP channel can be enabled (or subsequently disabled) for TLS encryption by running the ‘add_ampq_tls.sh’ or  ‘remove_ampq_tls.sh’ scripts in the samples/rr_1 directory/qm_setup directory. </dd>
+<dd>If you run a TLS test it is assumed the keystores for the queue manager have already been setup correctly. correctly. A svrconn channel will be created with the SSLCIPH attribute set to the cipherspec value specified in <a href="./rr_1/config.sh">config.sh</a>. The location of the  Java keystore used by the client will need to be specified in the configuration file, along with the password. 
+<p><p>If you want to run a TLS  test with QPID JMS then the AMQP channel can be enabled (or subsequently disabled) for TLS encryption by running the ‘add_ampq_tls.sh’ or  ‘remove_ampq_tls.sh’ scripts in the <a href="./rr_1/qm_setup">samples/rr_1 directory/qm_setup</a> directory. </dd>
 </dd>
 
-The qm_setup.sh  script has a dependency on Perl, to merge the settings in the samples/rr_1/qm_setup/qm_update.ini  (containing some recommended tunings), with the qm.ini of the newly created queue manager.  
+The [setup_mq_server.sh](./rr_1/qm_setup/setup_mq_server.sh) script has a dependency on Perl, to merge the settings in the [samples/rr_1/qm_setup/qm_update.ini](./rr_1/qm_setup/qm_update.ini)  (containing some recommended tunings), with the qm.ini of the newly created queue manager.  
 
 The version this was tested on is Perl v5.16.3. If you don’t have Perl on your system, then you can comment out the perl line in qm_setup.sh and merge the files yourself (.e. adding or modifying existing values in the *Channels* and *Log* stanzas and adding the *TuningParameters* stanza and value).
 
 ### Step 3: Run the JMSPerfHarness test.
 
-Now the queue manager has been created, you can execute the test, there are four scripts included in the samples/rr_1 directory.
-* **start_responders_mq_jms.sh**  
+Now the queue manager has been created, you can execute the test, there are four scripts included in the [samples/rr_1](./rr_1)  directory.
+* **[start_responders_mq_jms.sh](./rr_1/start_responders_mq_jms.sh)**  
 Used to start JMS responder threads, using the IBM MQ JMS Provider
-* **start_requesters_mq_jms.sh**  
+* **[start_requesters_mq_jms.sh](./rr_1/start_requesters_mq_jms.sh)**  
 Used to start JMS requester threads, using the IBM MQ JMS Provider
-* **start_responders_qpid_jms.sh**  
+* **[start_responders_qpid_jms.sh](./rr_1/start_responders_qpid_jms.sh)**  
 Used to start JMS responder threads, using the Apache Qpid JMS Provider
-* **start_requesters_qpid_jms.sh**  
+* **[start_requesters_qpid_jms.sh](./rr_1/start_requesters_qpid_jms.sh)**  
 Used to start JMS responder threads, suing the Apache Qpid Provider
 
 The scripts have the following parameters that can be changed:
@@ -148,23 +148,24 @@ The scenarios listed in the tables above are simply examples. Try some, look at 
 
 <dl>
 <dt>TLS Client Configuration</dt>
-<dd>If you run a TLS test you must set the following environment variables in samples/rr_1 directory/config.sh
+<dd>If you run a TLS test you must set the following environment variables in <a href="./rr_1 directory/config.sh">samples/rr_1 directory/config.sh</a>
 <dl><dt>CLIENT_CIPHER_SUITE</dt><dd>Ciphersuite used by the client†</dd> 
 <dt>CLIENT_TRUSTSTORE</dt><dd>Location of a Java keystore file (*.jks)†† containing the certificate of the queue manager.</dd>
 <dt>CLIENT_TRUSTSTORE_PASSWORD<dt><dd>Password to access the Java keystore file.</dd>
 </dl>
-† To match the SSLCIPH attribute for the svrconn or amqp channel set via the MQ_CIPHER_SPEC variable in config.sh. See https://www.ibm.com/docs/en/ibm-mq/9.3?topic=jms-tls-cipherspecs-ciphersuites-in-mq-classes
+† To match the SSLCIPH attribute for the svrconn or amqp channel set via the MQ_CIPHER_SPEC variable in <a href="./rr_1 directory/config.sh">config.sh</a>. See https://www.ibm.com/docs/en/ibm-mq/9.3?topic=jms-tls-cipherspecs-ciphersuites-in-mq-classes
 <p></p>†† e.g. to create a new jks file and import the certificate labelled ibmwebspheremqperf0 from the certificate file perf0.cert
 <ol><li>runmqckm -keydb -create -db  jms.jks -type jks -pw &lt;your truststore password&gt;</li>
 <li>runmqckm -cert -add -db jms.jks -pw &lt;your truststore password&gt; -label ibmwebspheremqperf0 -file perf0.cert</li></ol>
 </dd></dl>
 
-Taking the first test (non-persistent messaging) as an example, the following line is uncommented in  start_responders_mq_jms.sh :
+Taking the first test (non-persistent messaging) as an example, the following line is uncommented in [start_responders_mq_jms.sh](./rr_1/start_responders_mq_jms.sh) :
 ```
 ### Responders (MQ-JMS non-persistent) 
 $perf_cmd -su -wt 10 -wi 0 -nt $1 -ss $stats_interval -sc BasicStats -rl 0 -id $2 -tc jms.r11.Responder -oq REPLY -iq REQUEST -cr -to 30 -db 1 -dx $queues -dn 1  -pc WebSphereMQ -jfq true -jh $QM_HOST -jp $LISTENER_PORT -jc SYSTEM.DEF.SVRCONN -jb $QM_NAME
 ```
-The equivalent line is uncommented in **start_requesters_mq_jms.sh** and we’re ready to go.
+
+The equivalent line is uncommented in [start_requesters_mq_jms.sh](./rr_1/start_requesters_mq_jms.sh) and we’re ready to go.
 First start the responders. All scripts take a single command line parameter denoting the number of threads to start.  
 e.g. to start 20 responders:
 
@@ -225,7 +226,7 @@ rate=16648.00,total messages=33296,Snapshot period=2,threads=10
 
 In the sample above, the statistics interval for the requesters was set to 2. The rate messages show that the test running at about 16,600 iterations/sec, i.e. ~33,200 messages for every reporting interval. Your results will depend on a number of factors, including the specifications of the hosts and the network links (and  the filesystem hosting the MQ recovery log, for persistent messaging). 
 
-Once the requesters’ rates have settled you’ll see the responders’ rates match. You may choose not to report responder rates at all (set **stats_interval** to 0 in **start_responders_mq_jms.sh**), as the rate reported by the requesters indicates the test is running ok (requesters won’t run unless the responders are replying).
+Once the requesters’ rates have settled you’ll see the responders’ rates match. You may choose not to report responder rates at all (set **stats_interval** to 0 in [start_responders_mq_jms.sh](./rr_1/start_responders_mq_jms.sh)), as the rate reported by the requesters indicates the test is running ok (requesters won’t run unless the responders are replying).
 
 JMS tests will settle after a short time as JIT compilation in the JVM optimises the code. As coded, the tests will run as fast as they can (hint: to set threads to run at a rate simulating your application, look at the -rt parameter for the WorkerThread class in the PerfHarness documentation). 
 
