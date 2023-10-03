@@ -266,8 +266,8 @@ JMSPerfHarness command line parameters set via variables in the test execution s
 |-ms|messageSize	|Message size in bytes.|
 |-dx	|queues	|Multi-destination numeric maximum. Controls the number of queues used.|
 |-ss	|stats_interval	|Statistics reporting period (seconds).|
-|-jb	|QM_NAME	Queue manager to connect to (not used by Qpid JMS tests).|
-|-jh	|QM_HOST	Host to connect to.|
+|-jb	|QM_NAME	|Queue manager to connect to (not used by Qpid JMS tests).|
+|-jh	|QM_HOST	|Host to connect to.|
 |-jp	|LISTENER_PORT	|TCP listener port used by MQ JMS tests.|
 |-jp	|AMQP_PORT	|AMQP channel port used by Qpid JMS tests.|
 |-us	|QM_USERID	|Userid used by connection authentication tests.|
