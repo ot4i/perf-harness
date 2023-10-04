@@ -142,7 +142,7 @@ Each script contains a number of examples you can run, dependant on the JMS prov
 [^1]:As of MQ V9.3.3, the MQ AMQP service does not support transactions. See: https://www.ibm.com/docs/en/ibm-mq/9.3?topic=mq-amqp-clients-communicating-over
 [^2]:This is included for comparison with persistent messaging using the Qpid JMS provider. 
 
-Simply un-comment the test you want to run then execute it (starting with the requesters). Usually you will run the requesters and responders in the same mode (i.e., if you’re running non-persistent requesters, you’ll set the responders to be the same. 
+Simply uncomment the test you want to run then execute it (starting with the requesters). Usually you will run the requesters and responders in the same mode (i.e., if you’re running non-persistent requesters, you’ll set the responders to be the same. 
 
 The scenarios listed in the tables above are simply examples. Try some, look at the parameters set and then you can use these as a basis for running your own tests with the help of the MQ and PerfHarness documentation (e.g. running a persistent TLS variant).
 
