@@ -16,6 +16,7 @@ import com.ibm.uk.hursley.perfharness.Log;
 import com.ibm.uk.hursley.perfharness.WorkerThread;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Sends messages on the request queue and then waits for the replies on the reply queue.
@@ -44,10 +45,13 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 	protected GetReplyMessagesThread getThread  = null;
 
+	private AtomicBoolean getThreadIsReady = new AtomicBoolean(false);
+
 	protected static TimeoutThread timeoutThread = null;
 	protected static RequestorAsync threadToUseForTimeoutStats = null;
 	int RFHFormat = 0;
 	int NewGetMessage = 0;
+
 
 	static {
 		Config.registerSelf( RequestorAsync.class );
@@ -122,12 +126,24 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	}
 
 	public boolean oneIteration() throws Exception {
-		startResponseTimePeriod();
+		//startResponseTimePeriod();
+
+		// Wait for the get thread to start completely (MQCONN delays might affect results)
+		for ( int i=0 ; i<10 ; i++ )
+		{
+			if ( getThreadIsReady.get() )
+			{
+				break;
+			}
+			Thread.sleep(100);
+		}
+
+		long startTime = System.nanoTime();
 		outMessage.expiry = 100;
 		inqueue.put(outMessage, pmo);
 		String sentMsgId = getHexString(outMessage.messageId);
 		//System.out.println("In RequestorAsync.oneIteration - msgId "+sentMsgId);
-		InFlightMessageDetails imd = new InFlightMessageDetails(sentMsgId, System.currentTimeMillis() + 1000L);
+		InFlightMessageDetails imd = new InFlightMessageDetails(sentMsgId, startTime, System.currentTimeMillis() + 1000L);
 		messageIDsInFlight.put(sentMsgId, imd);
 		messagesToTimeOut.put(imd);
 
@@ -170,6 +186,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 		while ( !stopping )
 		{
+			getThreadIsReady.set(true);
 			try {
 				outqueue.get(inMessage, gmo);
 			}
@@ -200,14 +217,9 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 				incUnknownMessages();
 				//System.out.println("In RequestorAsync.getMessages - correlId "+receivedCorrelId+" did not match (transacted "+transacted+")");
 			}
-			else if ( messageDetails.expiryZeroHour < System.currentTimeMillis() )
+			else 
 			{
-				incLateResponses();
-			}
-			else
-			{
-				// We don't do this here because we want the iterations count to reflect the number sent out
-				//incIterations();
+				incResponses(messageDetails.startTime, System.nanoTime());
 			}
 		}
 		
@@ -227,10 +239,12 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	public class InFlightMessageDetails
 	{
 		public String messageID;
+		public long startTime;
 		public long expiryZeroHour;
-		public InFlightMessageDetails(String messageID, long expiryZeroHour)
+		public InFlightMessageDetails(String messageID, long startTime, long expiryZeroHour)
 		{
 			this.messageID = messageID;
+			this.startTime = startTime;
 			this.expiryZeroHour = expiryZeroHour;
 		}
 	}
@@ -275,7 +289,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 						Thread.sleep(100);
 						continue;
 					}
-					if ( imd.expiryZeroHour < (System.currentTimeMillis()-5000L) )
+					if ( imd.expiryZeroHour < System.currentTimeMillis() )
 					{
 						// We're the only thread taking messages from this queue, so this is safe
 						if ( RequestorAsync.messagesToTimeOut.poll() != imd )
