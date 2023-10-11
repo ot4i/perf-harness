@@ -100,6 +100,8 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 		outMessage.replyToQueueName = oq;
 
+		outMessage.report = CMQC.MQRO_COPY_MSG_ID_TO_CORREL_ID;
+
 		inMessage = new MQMessage();
 
 		RFHFormat = Config.parms.getInt("rf");
@@ -145,6 +147,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		{
 			outMessage.expiry = expiryInMilliSeconds/100;
 		}
+		outMessage.report = CMQC.MQRO_COPY_MSG_ID_TO_CORREL_ID;
 		inqueue.put(outMessage, pmo);
 		String sentMsgId = getHexString(outMessage.messageId);
 		//System.out.println("In RequestorAsync.oneIteration - msgId "+sentMsgId);
@@ -158,7 +161,6 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		//System.out.println("In RequestorAsync.oneIteration - msgId "+getHexString(outMessage.messageId)+" correlId "+getHexString(outMessage.correlationId));
 
 		incIterations();
-		//writeMessageToFileIfRequested();
 		
 		return true;
 	}
@@ -220,15 +222,13 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 			if ( messageDetails == null )
 			{
 				incUnknownMessages();
-				//System.out.println("In RequestorAsync.getMessages - correlId "+receivedCorrelId+" did not match (transacted "+transacted+")");
+				//System.out.println("In RequestorAsync.getMessages - correlId "+receivedCorrelId+" did not match (transacted "+transacted+") messageDetails.startTime "+messageDetails.startTime);
 			}
 			else 
 			{
 				incResponses(messageDetails.startTime, System.nanoTime());
 			}
 		}
-		
-		//writeMessageToFileIfRequested();
 		
 		return;
 	}

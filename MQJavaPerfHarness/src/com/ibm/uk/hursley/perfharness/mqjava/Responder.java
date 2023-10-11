@@ -105,6 +105,7 @@ public final class Responder extends MQJavaWorkerThread implements WorkerThread.
 		
 		inqueue.get( inMessage,gmo );
 		
+
 		if ( copyReplyFromRequest ) {
 			outMessage = inMessage;
 		} // else see default above
@@ -112,7 +113,11 @@ public final class Responder extends MQJavaWorkerThread implements WorkerThread.
 		if ( correlIDFromMsgID ) {
 			System.arraycopy(inMessage.messageId, 0, outMessage.correlationId, 0, CMQC.MQ_CORREL_ID_LENGTH);
 			pmo.options &= ~CMQC.MQPMO_NEW_MSG_ID;
-			pmo.options &= ~CMQC.MQPMO_NEW_CORREL_ID;
+
+			// Make sure we should be copying the correlId; report will be zero if so.
+			// MQRO_COPY_MSG_ID_TO_CORREL_ID  0x00000000
+			if ( inMessage.report == 0 )
+				pmo.options &= ~CMQC.MQPMO_NEW_CORREL_ID;
 		} else if ( !copyReplyFromRequest ) {
 			// only need to copy if we created a new message
 			System.arraycopy(inMessage.correlationId, 0, outMessage.correlationId, 0, CMQC.MQ_CORREL_ID_LENGTH);

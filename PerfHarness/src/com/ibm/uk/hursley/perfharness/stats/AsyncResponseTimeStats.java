@@ -163,6 +163,9 @@ public class AsyncResponseTimeStats extends Statistics {
 		double totalDuration = 0;
 		double totalRate = 0;
 		int counted = 0;
+		long totalResponses= 0;
+		long totalUnknownMessages = 0;
+		long totalTimeouts = 0;
 		
 		DecimalFormat df = new DecimalFormat("#.0");
 		
@@ -198,6 +201,12 @@ public class AsyncResponseTimeStats extends Statistics {
 				
 				if ( trimTime!=0 ) {
 					iterations -= trimValues[ workers.indexOf( worker ) ];
+				}
+
+				long responses = worker.getResponses();
+				
+				if ( trimTime!=0 ) {
+					responses -= trimValues[ workers.indexOf( worker ) ];
 				}
 
 				long unknownMessages = worker.getUnknownMessages();
@@ -255,6 +264,11 @@ public class AsyncResponseTimeStats extends Statistics {
 				totalIterations += iterations;
 				totalDuration += duration;
 				totalRate += rate;
+
+		 		totalResponses += responses;
+		 		totalUnknownMessages += unknownMessages;
+		 		totalTimeouts += timeouts;
+
 				counted++;
 
 			} // end while workers
@@ -280,6 +294,10 @@ public class AsyncResponseTimeStats extends Statistics {
 					pad("" + maxOverallResponseTime) +
 					pad("---"));
 			
+			System.out.println("\ntotalIterations=" + totalIterations +
+							   ",totalResponses="+totalResponses +
+							   ",totalUnknownMessages="+totalUnknownMessages+
+							   ",totalTimeouts="+totalTimeouts);
 		} // end if su
 		
 	} // end printFinalSummary
