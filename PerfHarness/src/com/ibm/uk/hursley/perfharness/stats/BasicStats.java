@@ -101,6 +101,9 @@ public class BasicStats extends Statistics {
 
 		updateValues();
 		int total = 0;
+		int totalLateResponses = 0;
+		int totalUnknownMessages = 0;
+		int totalTimeouts = 0;
 		int diff;
 		// comment these out to avoid printing per-thread data
 		if ( do_perThread ) sb.append(" (");
@@ -109,11 +112,24 @@ public class BasicStats extends Statistics {
 			diff = curr[j] - prev[j];
 			if ( do_perThread ) sb.append(diff).append("\t");
 			total += diff;
+			diff = currLateResponses[j] - prevLateResponses[j];
+			if ( do_perThread ) sb.append(diff).append("\t");
+			totalLateResponses += diff;
+			diff = currUnknownMessages[j] - prevUnknownMessages[j];
+			if ( do_perThread ) sb.append(diff).append("\t");
+			totalUnknownMessages += diff;
+			diff = currTimeouts[j] - prevTimeouts[j];
+			if ( do_perThread ) sb.append(diff).append("\t");
+			totalTimeouts += diff;
 		}
+		
 		// Add on new threads
 		for (int j = shortest; j<curr.length; j++ ) {
 			if ( do_perThread ) sb.append(curr[j]).append("\t");
 			total += curr[j];
+			totalLateResponses += currLateResponses[j];
+			totalUnknownMessages += currUnknownMessages[j];
+			totalTimeouts += currTimeouts[j];
 		}
 		if ( do_perThread ) sb.append(") ");
 		
@@ -132,6 +148,12 @@ public class BasicStats extends Statistics {
 		sb.append(",Snapshot period=").append((int)period / 1000);
 		sb.append(",threads=").append( parent.getRunningWorkers() );
 		
+		//if ( ( totalLateResponses + totalUnknownMessages + totalTimeouts ) != 0 )
+		{
+			sb.append(",totalLateResponses=").append(totalLateResponses);
+			sb.append(",totalUnknownMessages=").append(totalUnknownMessages);
+			sb.append(",totalTimeouts=").append(totalTimeouts);
+		}
 	}
 
 	public void printFinalSummary() {
@@ -141,6 +163,10 @@ public class BasicStats extends Statistics {
 		long totalIterations = 0;
 		double totalDuration = 0;
 		double totalRate = 0;
+
+		long totalLateResponses = 0;
+		long totalUnknownMessages = 0;
+		long totalTimeouts = 0;
 		int counted = 0;
 		
 		if ( Config.parms.getBoolean("su") ) {
@@ -174,6 +200,24 @@ public class BasicStats extends Statistics {
 					iterations -= trimValues[ workers.indexOf( worker ) ];
 				}
 				
+				long lateResponses = worker.getLateResponses();
+				
+				if ( trimTime!=0 ) {
+					lateResponses -= trimValues[ workers.indexOf( worker ) ];
+				}
+				
+				long unknownMessages = worker.getUnknownMessages();
+				
+				if ( trimTime!=0 ) {
+					unknownMessages -= trimValues[ workers.indexOf( worker ) ];
+				}
+				
+				long timeouts = worker.getTimeouts();
+				
+				if ( trimTime!=0 ) {
+					timeouts -= trimValues[ workers.indexOf( worker ) ];
+				}
+				
 				long duration = threadEndTime-threadStartTime;
 				double rate = (double) (iterations * 1000) / duration;
 				
@@ -181,7 +225,10 @@ public class BasicStats extends Statistics {
 					duration = 0;
 				}
 
-				totalIterations += iterations;
+		 		totalIterations += iterations;
+				totalLateResponses += lateResponses;
+		 		totalUnknownMessages += unknownMessages;
+		 		totalTimeouts += timeouts;
 				totalDuration += duration;
 				totalRate += rate;
 				counted++;
@@ -190,7 +237,10 @@ public class BasicStats extends Statistics {
 
    			System.out.println("totalIterations=" + totalIterations
    					+ ",avgDuration=" + numberFormat.format(totalDuration/(1000*counted))
-   					+ ",totalRate=" + numberFormat.format(totalRate));
+   					+ ",totalRate=" + numberFormat.format(totalRate)
+					+ ",totalLateResponses=" + numberFormat.format(totalLateResponses)
+					+ ",totalUnknownMessages=" + numberFormat.format(totalUnknownMessages)
+					+ ",totalTimeouts=" + numberFormat.format(totalTimeouts));
 		} // end if su
 		
 	} // end printFinalSummary

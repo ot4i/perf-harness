@@ -65,6 +65,7 @@ public final class Responder extends MQJavaWorkerThread implements WorkerThread.
         int destID = destFactory.generateDestinationID( getThreadNum() );
         String iq = Config.parms.getString("iq");
         String oq = Config.parms.getString("oq");
+		
         if ( destID>=0 ) {
         	iq += String.valueOf( destID );
         	oq += String.valueOf( destID );
@@ -111,6 +112,7 @@ public final class Responder extends MQJavaWorkerThread implements WorkerThread.
 		if ( correlIDFromMsgID ) {
 			System.arraycopy(inMessage.messageId, 0, outMessage.correlationId, 0, CMQC.MQ_CORREL_ID_LENGTH);
 			pmo.options &= ~CMQC.MQPMO_NEW_MSG_ID;
+			pmo.options &= ~CMQC.MQPMO_NEW_CORREL_ID;
 		} else if ( !copyReplyFromRequest ) {
 			// only need to copy if we created a new message
 			System.arraycopy(inMessage.correlationId, 0, outMessage.correlationId, 0, CMQC.MQ_CORREL_ID_LENGTH);

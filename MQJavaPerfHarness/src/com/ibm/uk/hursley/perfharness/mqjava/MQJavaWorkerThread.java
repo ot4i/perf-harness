@@ -186,7 +186,7 @@ public class MQJavaWorkerThread extends WorkerThread {
 		savedPmoOptions = pmo.options;    
 	}
 
-	private void destroyMQJavaResources(boolean b) {
+	protected void destroyMQJavaResources(boolean b) {
 		if (queue != null) {
 			try {
 				Log.logger.log(Level.FINE, "Closing queue " + queue.getName());

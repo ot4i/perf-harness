@@ -43,6 +43,11 @@ public abstract class WorkerThread extends java.lang.Thread {
 	private final AtomicLong    minTime = new AtomicLong(999999999); 
 	private final AtomicLong    maxTime = new AtomicLong(0); 
 	private final AtomicLong    totalTime = new AtomicLong(0); 
+	// Used by RequestorAsync to track missing messages
+	private final AtomicInteger lateResponses   = new AtomicInteger(0);
+	private final AtomicInteger unknownMessages = new AtomicInteger(0);
+	private final AtomicInteger timeouts        = new AtomicInteger(0);
+
 	private long   overallTotalTime = 0; 
 	private double overallM2 = 0; 
 	
@@ -207,6 +212,24 @@ public abstract class WorkerThread extends java.lang.Thread {
 		return val;
 	}
 
+	protected final int incLateResponses() {
+		final int val = lateResponses.get() + 1;
+		lateResponses.set(val);
+		return val;
+	}
+
+	protected final int incUnknownMessages() {
+		final int val = unknownMessages.get() + 1;
+		unknownMessages.set(val);
+		return val;
+	}
+
+	protected final int incTimeouts() {
+		final int val = timeouts.get() + 1;
+		timeouts.set(val);
+		return val;
+	}
+
 	protected final void startResponseTimePeriod() {
 		// Only record if tracking response times
 		if (transactionResponseStats) {
@@ -269,6 +292,18 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	public final int getIterations() {
 		return iterations.get();
+	}
+
+	public final int getLateResponses() {
+		return lateResponses.get();
+	}
+
+	public final int getUnknownMessages() {
+		return unknownMessages.get();
+	}
+
+	public final int getTimeouts() {
+		return timeouts.get();
 	}
 
 	public long getStartTime() {
