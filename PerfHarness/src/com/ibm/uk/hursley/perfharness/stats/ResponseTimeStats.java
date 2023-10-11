@@ -201,13 +201,13 @@ public class ResponseTimeStats extends Statistics {
 				totalTime = worker.getOverallTotalTime();
 				totalOverallResponseTime = totalOverallResponseTime+totalTime;
 				
-				minTime = worker.getMinTime();
+				minTime = worker.getOverallMinTime();
 				
 				if (minTime < minOverallResponseTime) {
 					minOverallResponseTime = minTime;
 				}
 
-				maxTime = worker.getMaxTime();
+				maxTime = worker.getOverallMaxTime();
 
 				if (maxTime > maxOverallResponseTime) {
 					maxOverallResponseTime = maxTime;
