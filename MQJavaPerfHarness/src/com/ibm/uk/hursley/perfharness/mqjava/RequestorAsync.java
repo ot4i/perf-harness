@@ -41,6 +41,8 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	private final int msgsToSendBeforeGetResp = Config.parms.getInt( "ir" ); //input to out put ratio, def =1  e.g. 3 means send 3 then get 1.
 	private final int msgsToGetBeforePutReq = Config.parms.getInt( "or" ); //input to out put ratio, default =1  e.g. 3 means get 3 then put 1 msg, used for pubsub fan out.
 	private final String replyToQmgr = Config.parms.getString("qm");
+	protected final int expiryInMilliSeconds = Config.parms.getInt("ex");
+	
 	protected MQQueueManager qmHConnForGetThread = null;
 
 	protected GetReplyMessagesThread getThread  = null;
@@ -139,11 +141,14 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		}
 
 		long startTime = System.nanoTime();
-		outMessage.expiry = 100;
+		if ( expiryInMilliSeconds > 0 )
+		{
+			outMessage.expiry = expiryInMilliSeconds/100;
+		}
 		inqueue.put(outMessage, pmo);
 		String sentMsgId = getHexString(outMessage.messageId);
 		//System.out.println("In RequestorAsync.oneIteration - msgId "+sentMsgId);
-		InFlightMessageDetails imd = new InFlightMessageDetails(sentMsgId, startTime, System.currentTimeMillis() + 1000L);
+		InFlightMessageDetails imd = new InFlightMessageDetails(sentMsgId, startTime, System.currentTimeMillis() + expiryInMilliSeconds);
 		messageIDsInFlight.put(sentMsgId, imd);
 		messagesToTimeOut.put(imd);
 
