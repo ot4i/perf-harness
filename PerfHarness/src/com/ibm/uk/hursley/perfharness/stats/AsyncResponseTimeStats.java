@@ -252,7 +252,7 @@ public class AsyncResponseTimeStats extends Statistics {
 				sb.append(pad(df.format(duration/(1000))));
 				sb.append(pad(df.format(rate)));
 				sb.append("|");
-				sb.append(pad(totalTime/responses));				
+				sb = (responses == 0)? sb.append(pad("N/A")) : sb.append(pad(totalTime/responses));				
 				sb = (minTime == 999999999)? sb.append(pad("N/A")) : sb.append(pad(minTime));
 				sb = (maxTime == 0)? sb.append(pad("N/A")) : sb.append(pad(maxTime));				
 				sb.append(pad(df.format(stdDev)));
@@ -289,7 +289,7 @@ public class AsyncResponseTimeStats extends Statistics {
 					pad(numberFormat.format(totalDuration/(1000*counted))) +
 					pad(numberFormat.format(totalRate)) +
 					"|" +
-					pad("" + totalOverallResponseTime/totalResponses) +
+					(( totalResponses == 0)? pad("N/A") : pad("" + totalOverallResponseTime/totalResponses)) +
 					pad("" + minOverallResponseTime) +
 					pad("" + maxOverallResponseTime) +
 					pad("---"));
