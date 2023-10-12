@@ -122,11 +122,22 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 	protected void destroyMQJavaResources(boolean b) {
 		stopping = true;
-		super.destroyMQJavaResources(b);
+		boolean successfullyStopped = false;
 		try{
-			getThread.join(1000);
+			getThread.join(2000);
+			successfullyStopped = true;
 		} catch (Throwable e){ 
 		}
+		if (!successfullyStopped){
+			System.out.println("Waiting for messages to stop arriving on the reply queue");
+			try{
+				getThread.join(60000);
+			} catch(Throwable e){
+				System.out.println("Giving up waiting");
+			}
+			
+		}
+		super.destroyMQJavaResources(b);
 	}
 
 	public boolean oneIteration() throws Exception {
@@ -190,12 +201,14 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		gmo.waitInterval = 1000;
 		gmo.options      = savedGmoOptions;
 		gmo.matchOptions = CMQC.MQMO_NONE;
-
-		while ( !stopping )
+		boolean gotMessageOnLastIteration = false;
+		while ( !stopping || gotMessageOnLastIteration)
 		{
 			getThreadIsReady.set(true);
 			try {
+				gotMessageOnLastIteration = false;
 				outqueue.get(inMessage, gmo);
+				gotMessageOnLastIteration = true;
 			}
 			catch ( com.ibm.mq.MQException mqe ) {
 				if ( mqe.reasonCode != 2033 ){
