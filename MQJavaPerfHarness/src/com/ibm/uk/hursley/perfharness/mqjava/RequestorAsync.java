@@ -171,7 +171,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 		//System.out.println("In RequestorAsync.oneIteration - msgId "+getHexString(outMessage.messageId)+" correlId "+getHexString(outMessage.correlationId));
 
-		incIterations();
+		incIterations(false);
 		
 		return true;
 	}

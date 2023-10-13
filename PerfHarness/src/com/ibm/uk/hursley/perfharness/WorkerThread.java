@@ -178,42 +178,49 @@ public abstract class WorkerThread extends java.lang.Thread {
 		super.start();
 	}
 
-	protected final int incIterations() {
+
+	protected final int incIterations(){
+		return incIterations(true);
+	}
+
+	protected final int incIterations(boolean doStatistics) {
 		// The following was measured as 1.6x faster than incrementAndGet (on a
 		// single-core x86). This only works because this method can only be
 		// called by its owning thread.
 		final int val = iterations.get() + 1;
 		iterations.set(val);
 
-		// // Only record if tracking response times
-		// if (transactionResponseStats) {
-		// 	// Check if response time period completed, if not end it now
-		// 	if (responseTimeStarted) {
-		// 		responseEndTime = System.nanoTime();
-		// 		responseTimeStarted = false;
-		// 	}
-		// 	responseTime = (responseEndTime - responseStartTime) / 1000;
-		// 	// Update the best response time for this thread
-		// 	minTime(responseTime);
+		// Only record if tracking response times
+		if (transactionResponseStats && doStatistics) {
+			// Check if response time period completed, if not end it now
+			if (responseTimeStarted) {
+				responseEndTime = System.nanoTime();
+				responseTimeStarted = false;
+			}
+			responseTime = (responseEndTime - responseStartTime) / 1000;
+			// Update the best response time for this thread
+			minTime(responseTime);
 
-		// 	// Update the worst response time for this thread
-		// 	maxTime(responseTime);
+			// Update the worst response time for this thread
+			maxTime(responseTime);
 
-		// 	// Update the worst response time for this thread
-		// 	totalTime(responseTime);
+			// Update the worst response time for this thread
+			totalTime(responseTime);
 
-		// 	// calculate online variance
-		// 	onlineVarianceDelta = responseTime - onlineVarianceMean;
-		// 	onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
-		// 	onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
-		// 	overallM2 = onlineVarianceM2;
+			// calculate online variance
+			onlineVarianceDelta = responseTime - onlineVarianceMean;
+			onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
+			onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
+			overallM2 = onlineVarianceM2;
 
-		// 	responseTime = 0;
-		// 	responseStartTime = 0;
-		// 	responseEndTime = 0;
-		// }
+			responseTime = 0;
+			responseStartTime = 0;
+			responseEndTime = 0;
+		}
 		return val;
 	}
+
+
 
 	protected final int incResponses(long asyncResponseStartTime, long asyncResponseEndTime) {
 		// The following was measured as 1.6x faster than incrementAndGet (on a
