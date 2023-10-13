@@ -232,7 +232,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 		// calculate online variance
 		onlineVarianceDelta = asyncResponseTime - onlineVarianceMean;
-		onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
+		onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)responses.get());
 		onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(asyncResponseTime-onlineVarianceMean);
 		overallM2 = onlineVarianceM2;
 
@@ -296,7 +296,11 @@ public abstract class WorkerThread extends java.lang.Thread {
 	}
 
 	public final double getResponseTimeStdDev() {
-		if (iterations.get() > 1) {
+		if (responses.get() > 1) {
+			final double variance = onlineVarianceM2 / (responses.get() - 1);
+			return Math.sqrt(variance);
+		}
+		else if (iterations.get() > 1) {
 			final double variance = onlineVarianceM2 / (iterations.get() - 1);
 			return Math.sqrt(variance);
 		} else {
