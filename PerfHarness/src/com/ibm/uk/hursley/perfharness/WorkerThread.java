@@ -185,33 +185,33 @@ public abstract class WorkerThread extends java.lang.Thread {
 		final int val = iterations.get() + 1;
 		iterations.set(val);
 
-		// Only record if tracking response times
-		if (transactionResponseStats) {
-			// Check if response time period completed, if not end it now
-			if (responseTimeStarted) {
-				responseEndTime = System.nanoTime();
-				responseTimeStarted = false;
-			}
-			responseTime = (responseEndTime - responseStartTime) / 1000;
-			// Update the best response time for this thread
-			minTime(responseTime);
+		// // Only record if tracking response times
+		// if (transactionResponseStats) {
+		// 	// Check if response time period completed, if not end it now
+		// 	if (responseTimeStarted) {
+		// 		responseEndTime = System.nanoTime();
+		// 		responseTimeStarted = false;
+		// 	}
+		// 	responseTime = (responseEndTime - responseStartTime) / 1000;
+		// 	// Update the best response time for this thread
+		// 	minTime(responseTime);
 
-			// Update the worst response time for this thread
-			maxTime(responseTime);
+		// 	// Update the worst response time for this thread
+		// 	maxTime(responseTime);
 
-			// Update the worst response time for this thread
-			totalTime(responseTime);
+		// 	// Update the worst response time for this thread
+		// 	totalTime(responseTime);
 
-			// calculate online variance
-			onlineVarianceDelta = responseTime - onlineVarianceMean;
-			onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
-			onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
-			overallM2 = onlineVarianceM2;
+		// 	// calculate online variance
+		// 	onlineVarianceDelta = responseTime - onlineVarianceMean;
+		// 	onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
+		// 	onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
+		// 	overallM2 = onlineVarianceM2;
 
-			responseTime = 0;
-			responseStartTime = 0;
-			responseEndTime = 0;
-		}
+		// 	responseTime = 0;
+		// 	responseStartTime = 0;
+		// 	responseEndTime = 0;
+		// }
 		return val;
 	}
 
