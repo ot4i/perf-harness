@@ -14,6 +14,9 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.Log;
 import com.ibm.uk.hursley.perfharness.WorkerThread;
+
+import static com.ibm.uk.hursley.perfharness.WorkerThread.TIME_PRECISION;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,7 +62,8 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		Config.registerSelf( RequestorAsync.class );
 		MQProvider.registerConfig();
 		mqprovider = MQProvider.getInstance();
-		Config.parms.getDouble("rt");
+		//windowSizeInterval = Config.parms.getDouble("rt");
+		WINDOWSIZE = 60 * TIME_PRECISION;
 	}
 
 	/**

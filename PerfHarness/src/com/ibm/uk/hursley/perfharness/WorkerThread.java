@@ -395,7 +395,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 		return threadnum;
 	}
 
-	private static final long TIME_PRECISION = 1000000000; // nanos	
+	protected static final long TIME_PRECISION = 1000000000; // nanos	
 	
 	/**
 	 * Only a class that implements the Paceable interface can be used here. If
@@ -547,8 +547,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	private long windowbase = 0;
 	private long windowcount = 0;
-	public int interval = 60;
-	private static long WINDOWSIZE = 60 * TIME_PRECISION;
+	protected static long WINDOWSIZE = 4 * TIME_PRECISION;
 
 	/**
 	 * Tries to sleep intelligently base upon the requested delay period. The
