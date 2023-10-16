@@ -118,6 +118,16 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
         		timeoutThread.start();
 			}
 		}
+
+		// Wait for the get thread to start completely (MQCONN delays might affect results)
+		for ( int i=0 ; i<100 ; i++ )
+		{
+			if ( getThreadIsReady.get() )
+			{
+				break;
+			}
+			Thread.sleep(100);
+		}
 	}
 
 	protected void destroyMQJavaResources(boolean b) {
@@ -141,17 +151,6 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	}
 
 	public boolean oneIteration() throws Exception {
-		//startResponseTimePeriod();
-
-		// Wait for the get thread to start completely (MQCONN delays might affect results)
-		for ( int i=0 ; i<10 ; i++ )
-		{
-			if ( getThreadIsReady.get() )
-			{
-				break;
-			}
-			Thread.sleep(100);
-		}
 
 		long startTime = System.nanoTime();
 		if ( expiryInMilliSeconds > 0 )

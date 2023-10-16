@@ -547,7 +547,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	private long windowbase = 0;
 	private long windowcount = 0;
-	private static final long WINDOWSIZE = 4 * TIME_PRECISION;
+	private static final long WINDOWSIZE = 60 * TIME_PRECISION;
 
 	/**
 	 * Tries to sleep intelligently base upon the requested delay period. The
@@ -578,6 +578,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 		if (sleep > 0) {
 			final int sleepNanos = (int)(sleep % 1000000);
 			final long sleepMillis = (long)((sleep - sleepNanos)* (1000.0 / TIME_PRECISION));
+			//System.out.println("Now: " + now + " windowposition: " + windowposition + " windowbase: " + windowbase + " sleepNanos: " + sleepNanos + " sleepMillis: " + sleepMillis);
 			Thread.sleep(sleepMillis, sleepNanos);
 		}
 		return now;

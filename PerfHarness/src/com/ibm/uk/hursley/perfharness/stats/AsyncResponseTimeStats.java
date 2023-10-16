@@ -249,7 +249,7 @@ public class AsyncResponseTimeStats extends Statistics {
 				// Add data to entry
 				sb.append(pad(worker.getThreadNum()));
 				sb.append(pad(iterations));
-				sb.append(pad(df.format(duration/(1000))));
+				sb.append(pad(df.format(duration/(1000.0))));
 				sb.append(pad(df.format(rate)));
 				sb.append("|");
 				sb = (responses == 0)? sb.append(pad("N/A")) : sb.append(pad(totalTime/responses));				
