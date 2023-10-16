@@ -15,8 +15,6 @@ import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.Log;
 import com.ibm.uk.hursley.perfharness.WorkerThread;
 
-import static com.ibm.uk.hursley.perfharness.WorkerThread.TIME_PRECISION;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
