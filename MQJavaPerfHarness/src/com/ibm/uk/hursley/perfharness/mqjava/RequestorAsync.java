@@ -60,8 +60,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		Config.registerSelf( RequestorAsync.class );
 		MQProvider.registerConfig();
 		mqprovider = MQProvider.getInstance();
-		//windowSizeInterval = Config.parms.getDouble("rt");
-		WINDOWSIZE = 60 * TIME_PRECISION;
+		WINDOWSIZE = Config.parms.getInt("wti") * TIME_PRECISION;
 	}
 
 	/**
