@@ -255,7 +255,7 @@ public class AsyncResponseTimeStats extends Statistics {
 				sb = (responses == 0)? sb.append(pad("N/A")) : sb.append(pad(totalTime/responses));				
 				sb = (minTime == 999999999)? sb.append(pad("N/A")) : sb.append(pad(minTime));
 				sb = (maxTime == 0)? sb.append(pad("N/A")) : sb.append(pad(maxTime));				
-				sb.append(pad(df.format(stdDev)));
+				//sb.append(pad(df.format(stdDev)));
 				sb.append("|");
 				
 				workerStats.add(sb);
@@ -274,16 +274,16 @@ public class AsyncResponseTimeStats extends Statistics {
 			} // end while workers
 			 			
    			System.out.println("==================");
-   			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
-   			System.out.println("                                                                                |                                 ResponseTimes                                  |");
-			System.out.println(pad("Thread Number") + pad("Iterations") + pad("Duration") + pad("Average MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") + pad("Standard Deviation") + "|");
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
+   			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
+   			System.out.println("                                                                                |                        ResponseTimes                       |");
+			System.out.println(pad("Thread Number") + pad("Iterations") + pad("Duration") + pad("Average MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") /*+ pad("Standard Deviation")*/ + "|");
+			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
    			
 			for(StringBuilder sb : workerStats) {
    				System.out.println(sb.toString());
    			}
 			
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
+			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
 			System.out.println(pad("OVERALL:") +
 					pad(totalIterations) +
 					pad(numberFormat.format(totalDuration/(1000*counted))) +
@@ -291,8 +291,8 @@ public class AsyncResponseTimeStats extends Statistics {
 					"|" +
 					(( totalResponses == 0)? pad("N/A") : pad("" + totalOverallResponseTime/totalResponses)) +
 					pad("" + minOverallResponseTime) +
-					pad("" + maxOverallResponseTime) +
-					pad("---"));
+					pad("" + maxOverallResponseTime));// +
+					//pad("---"));
 			
 			System.out.println("\ntotalIterations=" + totalIterations +
 							   ",totalResponses="+totalResponses +

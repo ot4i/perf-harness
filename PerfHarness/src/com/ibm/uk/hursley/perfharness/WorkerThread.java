@@ -547,7 +547,8 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	private long windowbase = 0;
 	private long windowcount = 0;
-	private static final long WINDOWSIZE = 60 * TIME_PRECISION;
+	public int interval = 60;
+	private static long WINDOWSIZE = 60 * TIME_PRECISION;
 
 	/**
 	 * Tries to sleep intelligently base upon the requested delay period. The

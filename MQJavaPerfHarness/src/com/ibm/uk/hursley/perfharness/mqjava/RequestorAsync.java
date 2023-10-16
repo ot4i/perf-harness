@@ -59,6 +59,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		Config.registerSelf( RequestorAsync.class );
 		MQProvider.registerConfig();
 		mqprovider = MQProvider.getInstance();
+		Config.parms.getDouble("rt");
 	}
 
 	/**
