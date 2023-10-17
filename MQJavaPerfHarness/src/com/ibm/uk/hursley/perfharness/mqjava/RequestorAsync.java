@@ -15,18 +15,19 @@ import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.Log;
 import com.ibm.uk.hursley.perfharness.WorkerThread;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Sends messages on the request queue and then waits for the replies on the reply queue.
  * Assumes "message ID to correl ID" pattern.
  * 
- * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.RequestorAsync -nt 1 -ss 1 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -ws 1 -mf testdb-odbc.ini -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb -rt 10
+ * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.RequestorAsync -nt 10 -ss 1 -sc AsyncResponseTimeStats -wi 5 -rl 60 -mf somefile -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb -rt 100 -tx true
+ *
+ * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.Responder -nt 20 -ss 1 -sc BasicStats -wi 10 -to 3000 -rl 3600 -sh false -ws 1 -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqbf -co true
  * 
- * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.Responder -nt 1 -ss 1 -sc BasicStats -wi 10 -to 3000 -rl 600 -sh false -ws 1 -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb
- */
+ **/
 public final class RequestorAsync extends MQJavaWorkerThread implements WorkerThread.Paceable {
 
 	@SuppressWarnings("unused")
@@ -43,7 +44,9 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	private final int msgsToGetBeforePutReq = Config.parms.getInt( "or" ); //input to out put ratio, default =1  e.g. 3 means get 3 then put 1 msg, used for pubsub fan out.
 	private final String replyToQmgr = Config.parms.getString("qm");
 	protected final int expiryInMilliSeconds = Config.parms.getInt("ex");
+	public final boolean reduceHeapUsage = Config.parms.getBoolean("rhu");
 	
+
 	protected MQQueueManager qmHConnForGetThread = null;
 
 	protected GetReplyMessagesThread getThread  = null;
@@ -88,12 +91,17 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		String oq = Config.parms.getString("oq");
 
 		int	mqoo = CMQC.MQOO_OUTPUT | CMQC.MQOO_FAIL_IF_QUIESCING;
-			if (Config.parms.getBoolean("bf")) {
-				mqoo |= CMQC.MQOO_BIND_NOT_FIXED;
-			}
+		if (Config.parms.getBoolean("bf")) {
+			mqoo |= CMQC.MQOO_BIND_NOT_FIXED;
+		}
 
-			Log.logger.log(Level.FINE, "Opening for input {0}", iq);
-			inqueue = qm.accessQueue(iq, mqoo);
+		//for ( int i=0 ; i<1000 ; i++ )
+		//{
+		//	messagesToReUse.add(new InFlightMessageDetails());
+		//}
+
+		Log.logger.log(Level.FINE, "Opening for input {0}", iq);
+		inqueue = qm.accessQueue(iq, mqoo);
 		outMessage = mqprovider.createMessage(getName());
 
 		if (replyToQmgr != null && !replyToQmgr.equals("")) {
@@ -111,13 +119,16 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		getThread = new GetReplyMessagesThread(this);
         getThread.start();
 
-		// Slightly hacky but using the object monitor works . . .
-		synchronized (messagesToTimeOut)
+		if ( expiryInMilliSeconds > 0 )
 		{
-			if ( timeoutThread == null )
+			// Slightly hacky but using the object monitor works . . .
+			synchronized (messagesToTimeOut)
 			{
-				timeoutThread = new TimeoutThread();
-        		timeoutThread.start();
+				if ( timeoutThread == null )
+				{
+					timeoutThread = new TimeoutThread();
+        			timeoutThread.start();
+				}
 			}
 		}
 
@@ -152,6 +163,10 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		super.destroyMQJavaResources(b);
 	}
 
+    public static ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails> messageIDsInFlight = new ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails>();
+    public static ConcurrentLinkedQueue<InFlightMessageDetails> messagesToTimeOut = new ConcurrentLinkedQueue<InFlightMessageDetails>();
+
+
 	public boolean oneIteration() throws Exception {
 
 		long startTime = System.nanoTime();
@@ -161,29 +176,21 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		}
 		outMessage.report = CMQC.MQRO_COPY_MSG_ID_TO_CORREL_ID;
 		inqueue.put(outMessage, pmo);
-		String sentMsgId = getHexString(outMessage.messageId);
-		//System.out.println("In RequestorAsync.oneIteration - msgId "+sentMsgId);
-		InFlightMessageDetails imd = new InFlightMessageDetails(sentMsgId, startTime, System.currentTimeMillis() + expiryInMilliSeconds);
-		messageIDsInFlight.put(sentMsgId, imd);
-		messagesToTimeOut.put(imd);
-
+		InFlightMessageDetails imd = getOrCreateInFlightMessageDetails(outMessage.messageId, startTime, System.currentTimeMillis() + expiryInMilliSeconds);
+		messageIDsInFlight.put(imd.messageID, imd);
+		messagesToTimeOut.add(imd);
+		//System.out.println("In oneIteration() - correlId "+imd.messageID+" added to hashmap; imd.messageID.dataHashCode "+imd.messageID.dataHashCode);
 		if (transacted)
 			qm.commit();
 
-		//System.out.println("In RequestorAsync.oneIteration - msgId "+getHexString(outMessage.messageId)+" correlId "+getHexString(outMessage.correlationId));
 
 		incIterations(false);
 		
 		return true;
 	}
 
-    public static ConcurrentHashMap<String, InFlightMessageDetails> messageIDsInFlight = new ConcurrentHashMap<String, InFlightMessageDetails>();
-    public static LinkedBlockingQueue<InFlightMessageDetails> messagesToTimeOut = new LinkedBlockingQueue<InFlightMessageDetails>();
-
-
-
-	public void getMessages() throws Exception {
-
+	public void getMessages() throws Exception 
+	{
 		// Initialization has to be done here to get a new MQHCONN for the new thread
 		if ( qmHConnForGetThread == null )
 		{
@@ -202,7 +209,9 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		gmo.waitInterval = 1000;
 		gmo.options      = savedGmoOptions;
 		gmo.matchOptions = CMQC.MQMO_NONE;
+		MQByteArrayHolder messageIdHolder = new MQByteArrayHolder(24);
 		boolean gotMessageOnLastIteration = false;
+
 		while ( !stopping || gotMessageOnLastIteration)
 		{
 			getThreadIsReady.set(true);
@@ -216,27 +225,27 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 					mqe.printStackTrace();
 					Thread.sleep(1000);
 				}
-
 				if (transacted)
-					qmHConnForGetThread.commit();
+					qmHConnForGetThread.commit(); // Not sure this is needed, but it does no harm
 				continue;
 			}
 			catch (Throwable e){
 				e.printStackTrace();
 				if (transacted)
-					qmHConnForGetThread.commit();
+					qmHConnForGetThread.commit(); // Not sure this is needed, but it does no harm
 				Thread.sleep(1000);
 			}
 
 			if (transacted)
 				qmHConnForGetThread.commit();
 
-			String receivedCorrelId = getHexString(inMessage.correlationId);
-			InFlightMessageDetails messageDetails = messageIDsInFlight.remove(receivedCorrelId);
+			messageIdHolder.setData(inMessage.correlationId);
+
+			InFlightMessageDetails messageDetails = messageIDsInFlight.remove(messageIdHolder);
 			if ( messageDetails == null )
 			{
 				incUnknownMessages();
-				//System.out.println("In RequestorAsync.getMessages - correlId "+receivedCorrelId+" did not match (transacted "+transacted+") messageDetails.startTime "+messageDetails.startTime);
+				System.out.println("In RequestorAsync.getMessages - correlId "+messageIdHolder+" did not match (transacted "+transacted+") messageIdHolder.dataHashCode "+messageIdHolder.dataHashCode);
 			}
 			else 
 			{
@@ -247,27 +256,6 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		return;
 	}
     
-    public static String getHexString(byte[] b) throws Exception {
-        String result = "";
-        for (int i = 0; i < b.length; i++) {
-            result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
-        }
-        return result;
-    }
-
-	public class InFlightMessageDetails
-	{
-		public String messageID;
-		public long startTime;
-		public long expiryZeroHour;
-		public InFlightMessageDetails(String messageID, long startTime, long expiryZeroHour)
-		{
-			this.messageID = messageID;
-			this.startTime = startTime;
-			this.expiryZeroHour = expiryZeroHour;
-		}
-	}
-
 	static boolean stopping = false;
 	public class GetReplyMessagesThread extends Thread 
 	{
@@ -305,12 +293,13 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 					RequestorAsync.InFlightMessageDetails imd = RequestorAsync.messagesToTimeOut.peek();
 					if ( imd == null )
 					{
-						Thread.sleep(100);
+						Thread.sleep(50);
 						continue;
 					}
 					if ( imd.expiryZeroHour < System.currentTimeMillis() )
 					{
-						// We're the only thread taking messages from this queue, so this is safe
+						// We're the only thread taking messages from this queue, so this is safe, and
+						// should never fail if we're the only timeout thread (which we should be).
 						if ( RequestorAsync.messagesToTimeOut.poll() != imd )
 							System.out.println("In TimeoutThread.run - imd.messageID "+imd.messageID+" picked up by someone else!");
 
@@ -323,10 +312,11 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 							//System.out.println("In TimeoutThread.run - imd.messageID "+imd.messageID+" removed");
 							RequestorAsync.threadToUseForTimeoutStats.incTimeouts();
 						}
+						RequestorAsync.returnInFlightMessageDetails(imd);
 						continue;
 					}
 
-					Thread.sleep(100);
+					Thread.sleep(50);
 				}
 			}
 			catch (Throwable e)
@@ -334,6 +324,64 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 				e.printStackTrace();
 				System.exit(98);
 			}
+		}
+	}
+
+	public class InFlightMessageDetails
+	{
+		public MQByteArrayHolder messageID;
+		public long startTime;
+		public long expiryZeroHour;
+		public InFlightMessageDetails()
+		{
+			messageID = new MQByteArrayHolder(24);
+			startTime = -1;
+			expiryZeroHour = -1;
+		}
+		public InFlightMessageDetails(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+		{
+			messageID = new MQByteArrayHolder(24);
+			messageID.setData(messageIDAsBytes);
+			this.startTime = startTime;
+			this.expiryZeroHour = expiryZeroHour;
+		}
+
+		public void resetValues(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+		{
+			messageID.setData(messageIDAsBytes);
+			this.startTime = startTime;
+			this.expiryZeroHour = expiryZeroHour;
+		}
+	}
+
+
+    public static ConcurrentLinkedQueue<InFlightMessageDetails> messagesToReUse = new ConcurrentLinkedQueue<InFlightMessageDetails>();
+
+	public InFlightMessageDetails getOrCreateInFlightMessageDetails(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+	{
+		InFlightMessageDetails imd = null;
+		if ( reduceHeapUsage )
+		{
+			imd = messagesToReUse.poll();
+		}
+
+		if ( imd == null )
+		{
+			imd = new InFlightMessageDetails(messageIDAsBytes, startTime, expiryZeroHour);
+		}
+		else
+		{
+			imd.resetValues(messageIDAsBytes, startTime, expiryZeroHour);
+		}
+		return imd;
+	}
+
+	public static void returnInFlightMessageDetails(InFlightMessageDetails imd)
+	{
+		// threadToUseForTimeoutStats will have been set before we get here
+		if ( RequestorAsync.threadToUseForTimeoutStats.reduceHeapUsage )
+		{
+			messagesToReUse.add(imd);
 		}
 	}
 }
