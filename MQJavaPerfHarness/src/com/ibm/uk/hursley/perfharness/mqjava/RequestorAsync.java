@@ -20,12 +20,126 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Sends messages on the request queue and then waits for the replies on the reply queue.
- * Assumes "message ID to correl ID" pattern.
+ * Sends messages on the request queue and waits for the replies on the reply queue using separate
+ * background threads to avoid changing the put rate. Assumes "message ID to correl ID" pattern.
+ * The goal of this driver code is to enable testing at a constant message rate while still keeping
+ * track of message response times and timeouts; this cannot be achieved easily without using an
+ * asynchronous message handling pattern.
+ * 
+ * The basic structure of this class is similar to the other worker classes, but the WorkerThread
+ * statistics are updated from a background thread (a get thread of the timeout thread). The queue
+ * terminology is server-based, so this class puts messages to the input queue and gets messages
+ * from the output queue, which may not be intuitive at first glance.
+ * 
+ * This class has three sets of threads:
+ * 
+ * 1) The main worker threads started by the perfharness framework. These threads are similar to 
+ *    those in other classes (such as Sender and Requestor) but only put messages to the input queue.
+ * 2) The GetReplyMessagesThreads started by the main worker threads. There is one GetReplyMessage
+ *    thread for each main worker thread (as many as specified by the -nt parameter) but they do not
+ *    not filter messages when calling MQGET: any message on the output queue may be picked up by
+ *    any of the threads. This means that it is possible for one reply thread to handle all of the
+ *    response messages, and while this leads to unbalanced statistics, it is not an error.
+ * 3) The single timeout thread, which handles all timeouts for the process. It does this by 
+ *    waiting until a message expiry time is reached, and then checking to see if the message has
+ *    been received. If it has, then no action is needed, but if not then it is removed from the 
+ *    message ID map and flagged as a timeout. This is a fast enough process that only one thread
+ *    is needed for the whole process.
+ * 
+ * The WorkerThread keeps track of four counters as well as response time statistics:
+ * 
+ * - iterations: counts the number of messages sent by this worker thread
+ * 
+ * - responses: counts the responses received by the GetReplyMessagesThread started by this
+ *   worker thread. Note that the responses could be received by any thread, and so the
+ *   responses count may not be close to the iterations count for the thread (and could be 0)
+ * 
+ * - unknownMessages: counts the number of messages received that could not be matched
+ * 
+ * - timeouts: counts how many messages were never matched by a resposne within the timeout
+ *
+ * Messages are tracked using an InFlightMessageDetails class, with one of them per message
+ * sent out by the oneIteration() method. This class contains the messageID, which will be
+ * returned in the response as a the correlID (allowing matching), the put time (for the
+ * statistics), and the expiry time (for the timeout thread to use). The same object is put
+ * on the timeout queue so the timeout thread can handle expiry, but the common case is 
+ * likely to involve one of the GetReplyMessagesThreads handling the message first.
+ * 
+ * The timeout and reply threads can both remove the entry from the shared ConcurrentHashMap
+ * that stores the InFlightMessageDetails objects, and the status of the reply message is 
+ * determined by which thread removes it from the map: if the timeout thread is able to remove
+ * it, then the reply message did not arrive in time and so it is counted as timed out, while
+ * the reply thread counts it as a reponse if it is able to remove it from the map before the
+ * timeout thread gets to it.
+ * 
+ * Unknown messages are those which arrive without a correlID that can be matched in the map,
+ * which means they are either late arrivals that have already timed out or else messages from
+ * other applications using the same queue.
+ * 
+ * A partial overview looks as follows:
+ * 
+ *  +--------------+                +----------------+
+ *  |              |                |                |
+ *  | WorkerThread | Calls          | RequestorAsync |
+ *  |              | oneIteration() |                |
+ *  |              |===============>| Puts a message |
+ *  |              |                | on the input Q |
+ *  |              |                |                |                                +--------------+
+ *  |              |                | Adds messageID |===============================>| TimeoutQueue |
+ *  |              |                | to the CHM and |                                |              |
+ *  |              |                | timeout queue  |      +-------------------+     | Stores the   |
+ *  |              |                |                |=====>| ConcurrentHashMap |     | messageIDs   |
+ *  |              |                |                |      |                   |     | and expiry   |
+ *  |              |  Returns       |                |      | Indexed by byte[] |     | times        |
+ *  |              |<===============|                |      | and stores the    |     +--------------+
+ *  |              |                |                |      | message IDs along |            ||
+ *  |              |                +----------------+      | with expiry time  |            ||
+ *  |              |                                        | and put time.     |            \/
+ *  |              |                                        +-------------------+     +---------------+
+ *  |              |                                          ||              /\      | TimeoutThread |
+ *  |              |                                          \/              ||      |               |
+ *  | Counters:    |                   +-------------------------+            ||      | Waits for the |
+ *  |  iterations  |                   | GetReplyMessagesThread  |            ||      | timeout queue |
+ *  |  responses   |                   | (calls getMessages())   |            ||      | entry expiry  |
+ *  |  timeouts    |                   |                         |            ||      | time to occur |
+ *  |  unknowns    | Calls             | Receives a message from |            ||      |               |
+ *  |              | incResponses()    | the output Q and looks  |            \=======| Removes CHM   |
+ *  |              |<==================| up the correlID in the  |                    | entry         |
+ *  |              |                   | CHM to find the start   |                    +---------------+
+ *  |              |                   | time for statistics.    |                    
+ *  +--------------+                   +-------------------------+
+ *   
+ * The ConcurrentHashMap uses the MQByteArrayHolder class as a key because a plain byte[] is not
+ * usable as a key by itself. The InFlightMessageDetails objects can be allocated from the heap
+ * and then returned, but they can also be re-used by putting them on a return queue where they
+ * can be picked up by the oneIteration() class for the next message. This saves heap operations
+ * but it is unclear how helpful this is in practice, and so the behavior can be switched using
+ * the "-rhu" option.
+ * 
+ * The messageID-to-correlID pattern is assumed, as that is a common pattern in the MQ world. It
+ * would be possible to change the code to use messageID-to-messageID or correlID-to-correlID as
+ * alternatives, but this has not been implemented in the first version. If this Requestor is used
+ * with the standard Responder class, then "-co true" is needed on the Responder command line.
+ * 
+ * Message expiry is handled using the "-ex" parameter, with a default of five seconds. Setting
+ * this to zero disables the timeout behavior (including the background thread), but otherwise 
+ * the timeout thread will expire messages in line with the parameter.
+ * 
+ * This class does not require messages to be sent transactionally, but very fast responders may
+ * send replies back so quickly that the oneIteration() method has not had time to populate the
+ * messageID map before the messages arrive, so the message will incorrectly be classed as unknown.
+ * The IBM App Connect aggregation nodes can suffer from this issue also, and the solution is to
+ * enable transactional behavior using "-tx true": this tells the code to call MQCMIT after the
+ * map has been updated, which means that the responses can never be received before the map
+ * contents are in place.
+ *  
+ * Example command to run this requestor:
  * 
  * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.RequestorAsync -nt 10 -ss 1 -sc AsyncResponseTimeStats -wi 5 -rl 60 -mf somefile -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb -rt 100 -tx true
  *
- * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.Responder -nt 20 -ss 1 -sc BasicStats -wi 10 -to 3000 -rl 3600 -sh false -ws 1 -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqbf -co true
+ * Example responder command:
+ * 
+ * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.Responder -nt 20 -ss 1 -sc BasicStats -wi 10 -to 3000 -rl 3600 -sh false -ws 1 -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb -co true
  * 
  **/
 public final class RequestorAsync extends MQJavaWorkerThread implements WorkerThread.Paceable {
@@ -122,7 +236,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		if ( expiryInMilliSeconds > 0 )
 		{
 			// Slightly hacky but using the object monitor works . . .
-			synchronized (messagesToTimeOut)
+			synchronized (timeoutQueue)
 			{
 				if ( timeoutThread == null )
 				{
@@ -164,7 +278,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 	}
 
     public static ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails> messageIDsInFlight = new ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails>();
-    public static ConcurrentLinkedQueue<InFlightMessageDetails> messagesToTimeOut = new ConcurrentLinkedQueue<InFlightMessageDetails>();
+    public static ConcurrentLinkedQueue<InFlightMessageDetails> timeoutQueue = new ConcurrentLinkedQueue<InFlightMessageDetails>();
 
 
 	public boolean oneIteration() throws Exception {
@@ -178,7 +292,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		inqueue.put(outMessage, pmo);
 		InFlightMessageDetails imd = getOrCreateInFlightMessageDetails(outMessage.messageId, startTime, System.currentTimeMillis() + expiryInMilliSeconds);
 		messageIDsInFlight.put(imd.messageID, imd);
-		messagesToTimeOut.add(imd);
+		timeoutQueue.add(imd);
 		//System.out.println("In oneIteration() - correlId "+imd.messageID+" added to hashmap; imd.messageID.dataHashCode "+imd.messageID.dataHashCode);
 		if (transacted)
 			qm.commit();
@@ -290,7 +404,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 			{
 				while ( !RequestorAsync.stopping )
 				{
-					RequestorAsync.InFlightMessageDetails imd = RequestorAsync.messagesToTimeOut.peek();
+					RequestorAsync.InFlightMessageDetails imd = RequestorAsync.timeoutQueue.peek();
 					if ( imd == null )
 					{
 						Thread.sleep(50);
@@ -300,7 +414,7 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 					{
 						// We're the only thread taking messages from this queue, so this is safe, and
 						// should never fail if we're the only timeout thread (which we should be).
-						if ( RequestorAsync.messagesToTimeOut.poll() != imd )
+						if ( RequestorAsync.timeoutQueue.poll() != imd )
 							System.out.println("In TimeoutThread.run - imd.messageID "+imd.messageID+" picked up by someone else!");
 
 						// The normal case is this next call returns null because the message has been claimed by
