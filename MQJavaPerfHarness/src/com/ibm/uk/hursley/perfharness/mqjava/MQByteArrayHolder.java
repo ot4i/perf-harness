@@ -9,6 +9,9 @@
 
 package com.ibm.uk.hursley.perfharness.mqjava;
 
+/**
+ * Wrapper class to allow MQ correlIDs (24 bytes) to be used as keys in a ConcurrentHashMap.
+ */
 public class MQByteArrayHolder 
 {
 	public byte [] data;

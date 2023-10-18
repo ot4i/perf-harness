@@ -150,38 +150,43 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
     protected static MQProvider mqprovider;
 
     private final boolean transacted = Config.parms.getBoolean( "tx" );
-
-    private final boolean getMsgById = Config.parms.getBoolean( "mi" ); 
-
-	private final boolean correlateMsg = Config.parms.getBoolean("co");
-	private final int msgsToSendBeforeGetResp = Config.parms.getInt( "ir" ); //input to out put ratio, def =1  e.g. 3 means send 3 then get 1.
-	private final int msgsToGetBeforePutReq = Config.parms.getInt( "or" ); //input to out put ratio, default =1  e.g. 3 means get 3 then put 1 msg, used for pubsub fan out.
 	private final String replyToQmgr = Config.parms.getString("qm");
 	protected final int expiryInMilliSeconds = Config.parms.getInt("ex");
 	public final boolean reduceHeapUsage = Config.parms.getBoolean("rhu");
 	
 
+	// The get thread needs a separate MQHCONN to avoid MQ synchronization
 	protected MQQueueManager qmHConnForGetThread = null;
 
+    // The get thread associated with this worker thread
 	protected GetReplyMessagesThread getThread  = null;
 
+    // Indicates to all background threads that they should shut down
+	static boolean stopping = false;
+
+	// Used to ensure we don't start to sending messages before the get thread is able to receive them.
 	private AtomicBoolean getThreadIsReady = new AtomicBoolean(false);
 
+	// The one timeout thread for the whole process
 	protected static TimeoutThread timeoutThread = null;
+	// A specific worker thread to use for calling incTimeouts()
 	protected static RequestorAsync threadToUseForTimeoutStats = null;
-	int RFHFormat = 0;
-	int NewGetMessage = 0;
 
+	// Map to hold the in-flight messages for the reply and timeout threads
+    public static ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails> messageIDsInFlight = new ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails>();
+	// Queue for the messages to be expired if they don't arrive in time
+    public static ConcurrentLinkedQueue<InFlightMessageDetails> timeoutQueue = new ConcurrentLinkedQueue<InFlightMessageDetails>();
 
 	static {
 		Config.registerSelf( RequestorAsync.class );
 		MQProvider.registerConfig();
 		mqprovider = MQProvider.getInstance();
+		// Reset the parent class rate limiting window
 		WINDOWSIZE = Config.parms.getInt("wti") * TIME_PRECISION;
 	}
 
 	/**
-	 * Constructor for JMSClientThread.
+	 * Constructor for RequestorAsync.
 	 * @param name
 	 */
 	public RequestorAsync(String name) {
@@ -195,6 +200,11 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		run(this);
 	}
 
+	/**
+	 * Do the required MQ setup and also start the background thread
+	 * (and the timeout thread for the first one through)
+	 * 
+	 */
 	protected void buildMQJavaResources() throws Exception {
 		super.buildMQJavaResources();
 
@@ -224,12 +234,11 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 		outMessage.replyToQueueName = oq;
 
+		// Required for this class to work
 		outMessage.report = CMQC.MQRO_COPY_MSG_ID_TO_CORREL_ID;
 
 		inMessage = new MQMessage();
 
-		RFHFormat = Config.parms.getInt("rf");
-		NewGetMessage = Config.parms.getInt("mm");
 		getThread = new GetReplyMessagesThread(this);
         getThread.start();
 
@@ -257,6 +266,10 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		}
 	}
 
+	/**
+	 * Destroy the MQ resources and also wait for the get reply thread to finish
+	 * in order to avoid MQ-related errors on shutdown.
+	 */
 	protected void destroyMQJavaResources(boolean b) {
 		stopping = true;
 		boolean successfullyStopped = false;
@@ -277,32 +290,40 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		super.destroyMQJavaResources(b);
 	}
 
-    public static ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails> messageIDsInFlight = new ConcurrentHashMap<MQByteArrayHolder, InFlightMessageDetails>();
-    public static ConcurrentLinkedQueue<InFlightMessageDetails> timeoutQueue = new ConcurrentLinkedQueue<InFlightMessageDetails>();
-
-
+	/**
+	 * Puts a message on the queue and then puts an InFlightMessageDetails object
+	 * into the shared in-flight message map and also on the TimeoutQueue. 
+	 * The WorkerThread's incIterations() method is called but this does not update
+	 * statistics in that class, as that can only be done once the response has 
+	 * been received in getMessages() below.
+	 */
 	public boolean oneIteration() throws Exception {
 
-		long startTime = System.nanoTime();
+		long putTime = System.nanoTime();
 		if ( expiryInMilliSeconds > 0 )
 		{
 			outMessage.expiry = expiryInMilliSeconds/100;
 		}
 		outMessage.report = CMQC.MQRO_COPY_MSG_ID_TO_CORREL_ID;
 		inqueue.put(outMessage, pmo);
-		InFlightMessageDetails imd = getOrCreateInFlightMessageDetails(outMessage.messageId, startTime, System.currentTimeMillis() + expiryInMilliSeconds);
+		InFlightMessageDetails imd = getOrCreateInFlightMessageDetails(outMessage.messageId, putTime, System.currentTimeMillis() + expiryInMilliSeconds);
 		messageIDsInFlight.put(imd.messageID, imd);
 		timeoutQueue.add(imd);
 		//System.out.println("In oneIteration() - correlId "+imd.messageID+" added to hashmap; imd.messageID.dataHashCode "+imd.messageID.dataHashCode);
 		if (transacted)
 			qm.commit();
 
-
 		incIterations(false);
 		
 		return true;
 	}
 
+	/**
+	 * Partner method for oneIteration(). Sits in a loop waiting for MQ messages to arrive, at which 
+	 * point the correlID is used to check the map of in-flight messages. If the entry is found,
+	 * then the messages has arrived in time, the entry is removed, and the statistics are updated
+	 * using the receive time and also the put time from the InFlightMessageDetails.
+	 */
 	public void getMessages() throws Exception 
 	{
 		// Initialization has to be done here to get a new MQHCONN for the new thread
@@ -363,14 +384,16 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 			}
 			else 
 			{
-				incResponses(messageDetails.startTime, System.nanoTime());
+				incResponses(messageDetails.putTime, System.nanoTime());
 			}
 		}
 		
 		return;
 	}
-    
-	static boolean stopping = false;
+
+	/**
+	 * Thread that calls getMessages() on the parent class.
+	 */
 	public class GetReplyMessagesThread extends Thread 
 	{
 		RequestorAsync parent;
@@ -393,6 +416,12 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		}
 	}
 
+	/**
+	 * Single thread for the whole process. Sits in a loop waiting for expiry times to be reached, at
+	 * which point the message ID is used to check the map of in-flight messages. If the entry is found,
+	 * then the messages has timed out, because otherwise the get reply thread would have removed the
+	 * entry when the reply arrived.
+	 */
 	public class TimeoutThread extends Thread 
 	{
 		public TimeoutThread()
@@ -441,37 +470,51 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 		}
 	}
 
+	/**
+	 * Holder for message details.
+	 * 
+	 * Created by oneIteration() and stored in the ConcurrentHashMap and also the TimeoutQueue
+	 * Found in the map by the getMessages() method (get reply thread)
+	 * Pulled off the TimeoutQueue on timeout
+	 */
 	public class InFlightMessageDetails
 	{
 		public MQByteArrayHolder messageID;
-		public long startTime;
+		public long putTime;
 		public long expiryZeroHour;
 		public InFlightMessageDetails()
 		{
 			messageID = new MQByteArrayHolder(24);
-			startTime = -1;
+			putTime = -1;
 			expiryZeroHour = -1;
 		}
-		public InFlightMessageDetails(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+		public InFlightMessageDetails(byte[] messageIDAsBytes, long putTime, long expiryZeroHour)
 		{
 			messageID = new MQByteArrayHolder(24);
 			messageID.setData(messageIDAsBytes);
-			this.startTime = startTime;
+			this.putTime = putTime;
 			this.expiryZeroHour = expiryZeroHour;
 		}
-
-		public void resetValues(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+		/**
+	 	* Called if the object is being re-used to avoid heap operations
+	 	*/	
+		public void resetValues(byte[] messageIDAsBytes, long putTime, long expiryZeroHour)
 		{
 			messageID.setData(messageIDAsBytes);
-			this.startTime = startTime;
+			this.putTime = putTime;
 			this.expiryZeroHour = expiryZeroHour;
 		}
 	}
 
 
+	// Return queue for InFlightMessageDetails if the "reduce heap usage" option is set to true
     public static ConcurrentLinkedQueue<InFlightMessageDetails> messagesToReUse = new ConcurrentLinkedQueue<InFlightMessageDetails>();
 
-	public InFlightMessageDetails getOrCreateInFlightMessageDetails(byte[] messageIDAsBytes, long startTime, long expiryZeroHour)
+	/**
+	 * Wrapper method for InFlightMessageDetails creation. Checks the queue if in reduced 
+	 * heap usage mode, and creates a new object if not found (or if not in rhu mode)
+	 */
+	public InFlightMessageDetails getOrCreateInFlightMessageDetails(byte[] messageIDAsBytes, long putTime, long expiryZeroHour)
 	{
 		InFlightMessageDetails imd = null;
 		if ( reduceHeapUsage )
@@ -481,15 +524,19 @@ public final class RequestorAsync extends MQJavaWorkerThread implements WorkerTh
 
 		if ( imd == null )
 		{
-			imd = new InFlightMessageDetails(messageIDAsBytes, startTime, expiryZeroHour);
+			imd = new InFlightMessageDetails(messageIDAsBytes, putTime, expiryZeroHour);
 		}
 		else
 		{
-			imd.resetValues(messageIDAsBytes, startTime, expiryZeroHour);
+			imd.resetValues(messageIDAsBytes, putTime, expiryZeroHour);
 		}
 		return imd;
 	}
 
+	/**
+	 * No-op unless in "reduced heap usage" mode, in which case it puts the 
+	 * object on the re-use queue.
+	 */
 	public static void returnInFlightMessageDetails(InFlightMessageDetails imd)
 	{
 		// threadToUseForTimeoutStats will have been set before we get here
