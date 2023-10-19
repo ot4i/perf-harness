@@ -14,44 +14,45 @@ package com.ibm.uk.hursley.perfharness.mqjava;
  */
 public class MQByteArrayHolder 
 {
-	public byte [] data;
-	public int dataHashCode = -1;
+    public byte [] data;
+    public int dataHashCode = -1;
 
-	public MQByteArrayHolder(int capacity)
-	{
-		data = new byte[capacity];
-	}
-	public void setData(byte[] b)
-	{
-		System.arraycopy(b, 0, data, 0, b.length); 
-		dataHashCode = java.util.Arrays.hashCode(data);
-	}
+    public MQByteArrayHolder(int capacity)
+    {
+        data = new byte[capacity];
+    }
+    public void setData(byte[] b)
+    {
+        System.arraycopy(b, 0, data, 0, b.length); 
+        dataHashCode = java.util.Arrays.hashCode(data);
+    }
 
-	@Override
-	public String toString()
-	{
-		return getHexString(data);
-	}
-		
-	@Override
-	public int hashCode() 
-	{
-		return dataHashCode;
-	}
+    @Override
+    public String toString()
+    {
+        return getHexString(data);
+    }
+        
+    @Override
+    public int hashCode() 
+    {
+        return dataHashCode;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object other)
-	{
-		boolean retval = false;
-		if ( other instanceof MQByteArrayHolder )
-		{
-			MQByteArrayHolder bah = (MQByteArrayHolder)other;
-			retval = java.util.Arrays.equals(data, bah.data);
-		}
-		return retval;
-	}
+    {
+        boolean retval = false;
+        if ( other instanceof MQByteArrayHolder )
+        {
+            MQByteArrayHolder bah = (MQByteArrayHolder)other;
+            retval = java.util.Arrays.equals(data, bah.data);
+        }
+        return retval;
+    }
     
-    public static String getHexString(byte[] b) {
+    public static String getHexString(byte[] b)
+    {
         String result = "";
         for (int i = 0; i < b.length; i++) {
             result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
@@ -66,7 +67,7 @@ public class MQByteArrayHolder
      * 
      * java -cp /home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar com.ibm.uk.hursley.perfharness.mqjava.MQByteArrayHolder
      */
-	public static void main(String[] args) throws Exception
+    public static void main(String[] args) throws Exception
     {
         byte [] msgIdOne = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
         byte [] msgIdTwo = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 };
