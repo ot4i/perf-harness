@@ -152,7 +152,7 @@ public class AsyncResponseTimeStats extends Statistics {
 		
 		boolean time_to_last_fire = Config.parms.getString( "sd" ).toLowerCase().equals( Statistics.STATS_TLF );
 
-	    long minOverallResponseTime = 999999999;
+		long minOverallResponseTime = 999999999;
 		long maxOverallResponseTime = 0;
 		long totalOverallResponseTime = 0;
 		long minTime = 999999999;
