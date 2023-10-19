@@ -128,11 +128,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This class does not require messages to be sent transactionally, but very fast responders may
  * send replies back so quickly that the oneIteration() method has not had time to populate the
  * messageID map before the messages arrive, so the message will incorrectly be classed as unknown.
- * The IBM App Connect aggregation nodes can suffer from this issue also, and the solution is to
- * enable transactional behavior using "-tx true": this tells the code to call MQCMIT after the
- * map has been updated, which means that the responses can never be received before the map
- * contents are in place.
+ * The IBM App Connect aggregation nodes can suffer from this issue also, and the solution for the
+ * RequestorAsync is to enable transactional behavior using "-tx true": this tells the code to 
+ * call MQCMIT after the map has been updated, which means that the responses can never be received
+ * before the map contents are in place.
  *  
+ * During testing it was noted that the message rate was consistently slightly under the expected
+ * rate, as if the rate limiting was sleeping for slightly too long on occasion. This was also true
+ * for the original Requestor class, and it appeared to be due to the WorkerThread.doSleep() method
+ * sleeping for a period of 1/rate seconds (so two messages a second would result in a 500ms sleep)
+ * without compensating properly for the time spent putting and getting messages. There was a time
+ * window approach that attempted to compensate, but the window was only four seconds long; this 
+ * meant that the code would sleep for slightly too long every four seconds, and this adds up if
+ * the messages take a few hundred milliseconds to arrive. The fix for this class (the async variant)
+ * is to  increase the window to sixty seconds by default, and allow adjustment with the "-wti" config
+ * parameter should other values be needed.
+ *
  * Example command to run this requestor:
  * 
  * java -cp /opt/mqm/java/lib/com.ibm.mq.allclient.jar:/home/tdolby/github.com/perf-harness/PerfHarness/build/perfharness.jar JMSPerfHarness -tc mqjava.RequestorAsync -nt 10 -ss 1 -sc AsyncResponseTimeStats -wi 5 -rl 60 -mf somefile -jb ACEv12_QM -iq ACE.INPUT.QUEUE -oq ACE.REPLY.QUEUE -jt mqb -rt 100 -tx true
