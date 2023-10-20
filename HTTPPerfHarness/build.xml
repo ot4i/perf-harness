@@ -13,8 +13,8 @@
 		<!-- This is used to name the various generated files -->
 		<property name="short.name" value="${ant.project.name}" />
 
-		<!-- Order of modules is important - precedence is given to the left when names overlap -->
-		<property name="perfharness.modules" value="HTTPPerfHarness PerfHarness" />
+		<!-- Only include http additional module (PerfHarness is always included) -->
+		<property name="include.http" value="true" />
 
 		<!-- This is the name by which the packaged code will identify itself -->
 		<property name="copyright.name" value="IBM Performance Harness for HTTP" />

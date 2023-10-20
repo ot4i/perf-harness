@@ -10,9 +10,13 @@
 
 package com.ibm.uk.hursley.perfharness.jms.providers;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.logging.Level;
 
 import javax.jms.ConnectionFactory;
@@ -64,6 +68,9 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 	protected static String sslCipherSuite;
 	protected static int providerVersion;
 	protected static String receiveConversion; 
+	protected static URL ccdt= null;
+	protected static String autoReconnect;
+	protected static String appName= null;
 	
 	/**
 	 * Register our presence and look up any required parameters for this class. 
@@ -86,6 +93,24 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 		sslCipherSuite = Config.parms.getString( "jl" );
 		providerVersion = Config.parms.getInt( "jv" );
 		receiveConversion = Config.parms.getString( "jrc" );
+		String CCDTlocation = Config.parms.getString("ccdt","");
+		autoReconnect = Config.parms.getString( "ar","" );
+		if(!CCDTlocation.equals("")) {
+			   //System.out.println("CCDT specified: "+CCDTlocation);
+			   //Create and validate the ccdt url. This is a bit heavy-weight but we don't want to spin round in other parts of 
+			   //code re-attempting connections when the ccdt isn't there. This will check whether the ccdt URL is well formed
+			   //and there is something that can be opened there at least.
+			   try {
+			      ccdt = new URL(CCDTlocation);
+			      URLConnection ccdConn = ccdt.openConnection();
+			      ccdConn.getInputStream().close();
+			   } catch (MalformedURLException e) {
+				  Log.logger.log(Level.SEVERE, "Invalid ccdt url specified: "+CCDTlocation);
+			   } catch (IOException e) {
+				  Log.logger.log(Level.SEVERE, "CCDT url cannot be opened: "+CCDTlocation);
+			}
+		}
+
 	}
 
 
@@ -111,12 +136,32 @@ public class WebSphereMQ extends JNDI implements JMSProvider {
 			} // else default is shared
 		} else {
 			// -jt mqc
-			cf.setTransportType(CommonConstants.WMQ_CM_CLIENT);
-			cf.setHostName(Config.parms.getString("jh"));
-			cf.setPort(Config.parms.getInt("jp"));
-			cf.setChannel(Config.parms.getString("jc"));
-			cf.setSSLCipherSuite( sslCipherSuite );
+			
+			if(ccdt == null) {
+			   cf.setTransportType(CommonConstants.WMQ_CM_CLIENT);
+			   cf.setHostName(Config.parms.getString("jh"));
+			   cf.setPort(Config.parms.getInt("jp"));
+			   cf.setChannel(Config.parms.getString("jc"));
+			   cf.setSSLCipherSuite( sslCipherSuite );
+		   } else {
+			   cf.setCCDTURL(ccdt);
+		   }
+		   if(autoReconnect.equals("WMQ_CLIENT_RECONNECT_DISABLED")) cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT_DISABLED);
+		   else if(!autoReconnect.equals("")) {
+			   if(ccdt == null) Log.logger.log(Level.SEVERE, "A ccdt must be provided for re-connect option: "+autoReconnect);
+			   else if(autoReconnect.equals("WMQ_CLIENT_RECONNECT_AS_DEF")) cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT_AS_DEF);
+			   else if(autoReconnect.equals("WMQ_CLIENT_RECONNECT_Q_MGR")) cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR);
+			   else if(autoReconnect.equals("WMQ_CLIENT_RECONNECT")) cf.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT);
+			   else Log.logger.log(Level.SEVERE, "Unknown reconnect option specified: "+autoReconnect);
+		   }
 		}
+		
+		appName = Config.parms.getString("an");
+		if(!appName.equals("")) {
+			cf.setAppName(appName);		
+		}
+		cf.setTemporaryModel(Config.parms.getString("jtm"));
+		cf.setTempQPrefix(Config.parms.getString("jtmp"));
 		cf.setQueueManager(Config.parms.getString("jb"));
 		
 		//Has no affect from WMQ V7 onwards - connection pooling removed

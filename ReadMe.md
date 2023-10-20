@@ -1,9 +1,7 @@
 # Perfharness
 Perfharness is a flexible and modular Java package for performance testing of HTTP, JMS, MQ and other transport scenarios. It provides a complete set of transport functionality, as well as many other features such as throttled operation (a fixed rate and/or number of messages), multiple destinations, live performance reporting, JNDI. It is one of the many tools used by performance teams for IBM MQ and IBM Integration Bus in order to conduct tests ranging from a single client to more than 10,000 clients. Customers also use the tool to test their own systems and validate they perform accordingly.
 
-Perfharness has been available in binary form on [IBM AlphaWorks](https://ibm.biz/JMSPerfHarness) for a number of years. 
-
-# Importing Perfharness into Eclipse.
+## Importing Perfharness into Eclipse.
 
 The top level folders in the repository are Eclipse projects. 
 * Download the repository zip file and extract into a temporary directory.  
@@ -41,9 +39,14 @@ Building Perfharness in Eclipse requires some extra dependancies importing to th
     * com.ibm.mqjms.jar
     *  com.ibm.mq.pcf.jar
     * jms.jar
-* ant-contrib.jar (Always required)
+* IBM_WMQ_9: 
+    * jms.jar
+    * com.ibm.mq.allclient.jar
 
-### AMQP Channel Module Pre-reqs
+See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ V9: [Developing JMS and Java applications](https://www.ibm.com/support/knowledgecenter/SSFKSJ_9.0.0/com.ibm.mq.dev.doc/q118320_.html)
+
+
+## AMQP Channel Module Pre-reqs
 
 Additional Pre-reqs for AMQP Channel Module
 
@@ -72,7 +75,6 @@ Select the Classpath tab, highlight the "User Entries" section and click the Add
 
 Click "Run"
 
-
 ## Compiling perfharness.jar within Eclipse
 
 There are 4 scripts which can be used to compile Perfharness.jar depending on whether you want all the capability or a specific one. The 4 scripts are:
@@ -90,7 +92,7 @@ This should launch the build process which will produce the jar file perfharness
 
 ![JarBuilt](images/PerfHarnessBuilt.png?raw=true "JarsBuilt")
 
-### Sample Commands:
+## Sample Commands:
 
 MQ (using IBM MQ classes for JMS) Requestor (preferred way to access MQ):
 ```java  -Xms512M -Xmx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc jms.r11.Requestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -su -wt 10 -dn 1 -mf<yourInputFile> -jh <mq host> -jp 1420 -jc SYSTEM.DEF.SVRCONN -jb <your qm> -iq REQUEST -oq REPLY -mt text -jt mqc -pc WebSphereMQ -ja 100```
@@ -134,4 +136,11 @@ TCPIP Requestor:
 -rl Run Length
 -wi wait interval in ms between starting clients
 ```
-For more in-depth documentation please refer to the PerfHarness manual in the PerfHarness/docs/ folder.
+
+## Docker
+
+There is a git repo that can help develop a dockerized version of JMSPerfHarness called [jmstestp](https://github.com/ibm-messaging/jmstestp)
+
+## Additional Information
+For more in-depth documentation please refer to the PerfHarness manual in the [PerfHarness/doc](./PerfHarness/doc) folder.
+A tutorial on running a JMS performance test with perfharness is available in the [PerfHarness/samples](./samples) folder [here](./samples/jmsperfharness_tutorial1.md).

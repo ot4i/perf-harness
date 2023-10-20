@@ -36,12 +36,12 @@ import com.ibm.uk.hursley.perfharness.util.TypedProperties;
  *   returns the loaded statistics class's requestStatistics method
  * > START -nt 4
  *   starts 4 new threads. Returns when the new threads a running
- * > END -nt 2
+ * > END -nt 2  (not yet implemented in ControlThread.java)
  *   ends 2 threads. Returns when the threads have stopped running - note, they may still be shutting down.
  *   If there are no more worker threads owned by the ControlThread, the application shuts down.
- * > END
+ * > END (not yet implemented in ControlThread.java)
  *   ends all remaining worker threads & shuts down.
- * > ALTER -rate 0
+ * > ALTER -rt 0
  *   changes the pacing of the threads. 0 means maximum rate, otherwise it's messages/sec
  *   Returns after all worker threads have been told the new rate. Please wait for the rate to steady before
  *   taking any new measurements.
@@ -62,7 +62,7 @@ public abstract class Command extends java.lang.Thread {
 	
 	protected String id = Config.parms.getString("id");
 	
-	protected volatile boolean shutdown = false;
+	public volatile boolean shutdown = false;
 	
 	/**
 	 * Register our presence and look up any required parameters for this class. 

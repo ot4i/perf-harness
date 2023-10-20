@@ -17,12 +17,13 @@ import javax.jms.TopicConnectionFactory;
 import javax.jms.TopicSession;
 import javax.naming.NamingException;
 
-import com.ibm.mq.jms.JMSC;
+//import com.ibm.mq.jms.JMSC;
 import com.ibm.mq.jms.MQConnectionFactory;
 import com.ibm.mq.jms.MQTopic;
 import com.ibm.mq.jms.MQTopicConnectionFactory;
 import com.ibm.uk.hursley.perfharness.Config;
 import com.ibm.uk.hursley.perfharness.jms.DestinationWrapper;
+import com.ibm.msg.client.wmq.WMQConstants;
 
 
 /**
@@ -37,7 +38,7 @@ public class WMB extends WebSphereMQ {
 	
 	private static String transport;
 	private static int bufferSize =1000;
-	static int brokerVersion = JMSC.MQJMS_BROKER_V2;
+	static int brokerVersion = WMQConstants.WMQ_BROKER_V2;
 	protected static boolean usingMQ;
 	
 	/**
@@ -61,6 +62,7 @@ public class WMB extends WebSphereMQ {
 	/**
 	 * Provide additional functionality for WMB connection factories.
 	 */
+	@SuppressWarnings("deprecation")
 	private void configureWBIMBConnectionFactory(MQConnectionFactory cf) throws JMSException {
 	
 			//Set common attributes i.e. version,port,hostname and buffersize.			
@@ -76,25 +78,25 @@ public class WMB extends WebSphereMQ {
 			if (transport.equals("ip"))
 			{
 				System.out.println("Using transport type MQJMS_TP_DIRECT_TCPIP");
-				cf.setTransportType(JMSC.MQJMS_TP_DIRECT_TCPIP);
+				cf.setTransportType(WMQConstants.WMQ_CM_DIRECT_TCPIP);
 			}
 			else if (transport.equals("ipmc"))
 			{
 				System.out.println("Using transport type MQJMS_TP_DIRECT_TCPIP, Multicast Enabled");
-				cf.setTransportType(JMSC.MQJMS_TP_DIRECT_TCPIP);
-				cf.setMulticast(JMSC.MQJMS_MULTICAST_ENABLED);
+				cf.setTransportType(WMQConstants.WMQ_CM_DIRECT_TCPIP);
+				cf.setMulticast(WMQConstants.RTT_MULTICAST_ENABLED);
 			}
 			else if (transport.equals("ipmcr"))
 			{
 				System.out.println("Using transport type MQJMS_TP_DIRECT_TCPIP, Multicast Enabled & Reliable");
-				cf.setTransportType(JMSC.MQJMS_TP_DIRECT_TCPIP);
-				cf.setMulticast(JMSC.MQJMS_MULTICAST_RELIABLE);
+				cf.setTransportType(WMQConstants.WMQ_CM_DIRECT_TCPIP);
+				cf.setMulticast(WMQConstants.RTT_MULTICAST_RELIABLE);
 			}
 			else if (transport.equals("ipmcn"))
 			{
 				System.out.println("Using transport type MQJMS_TP_DIRECT_TCPIP, Multicast Enabled & NOT Reliable");
-				cf.setTransportType(JMSC.MQJMS_TP_DIRECT_TCPIP);
-				cf.setMulticast(JMSC.MQJMS_MULTICAST_NOT_RELIABLE);
+				cf.setTransportType(WMQConstants.WMQ_CM_DIRECT_TCPIP);
+				cf.setMulticast(WMQConstants.RTT_MULTICAST_NOT_RELIABLE);
 			}
 			else if (transport.equals("mqb"))
 			{

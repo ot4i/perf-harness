@@ -307,6 +307,7 @@ public class ControlThread extends Thread {
 		
 		// may be redundant in many circumstance, but not all.
 		shutdown = true;
+		cmd.shutdown = true;
 		
 		// remove shutdownHook if not already invoked
 		if ( shutdownHookThread!=null && !shutdownHookThread.isAlive() ) {

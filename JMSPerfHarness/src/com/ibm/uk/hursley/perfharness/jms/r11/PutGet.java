@@ -110,7 +110,15 @@ public final class PutGet extends JMS11WorkerThread implements WorkerThread.Pace
         } else {
         	messageProducer.send(outMessage, deliveryMode, priority, expiry);
         }
-		if (transacted) session.commit();
+		if (transacted) {
+			if(commitDelay > 0) {
+				if(commitDelayMsg){
+					Log.logger.log(Level.INFO, "Delaying " + (commitDelay) + " milliseconds before each commit");
+				}
+				Thread.sleep(commitDelay);
+			}
+			session.commit();
+		}
 
 		if ((inMessage = messageConsumer.receive(timeout)) != null) {
 			// these three items should be an atomic operation!

@@ -11,6 +11,8 @@
 package com.ibm.uk.hursley.perfharness.jms.providers;
 
 import java.rmi.server.UID;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -41,6 +43,14 @@ public abstract class AbstractJMSProvider implements JMSProvider {
 	private static final String c = com.ibm.uk.hursley.perfharness.Copyright.COPYRIGHT;
 	
 	private static JMSProvider instance = null;
+	
+	public static Map<Integer, String> acknowledgeTypes;
+	static {
+		acknowledgeTypes = new HashMap<Integer, String>();
+		acknowledgeTypes.put(Session.AUTO_ACKNOWLEDGE, "AUTO_ACKNOWLEDGE");
+		acknowledgeTypes.put(Session.CLIENT_ACKNOWLEDGE, "CLIENT_ACKNOWLEDGE");
+		acknowledgeTypes.put(Session.DUPS_OK_ACKNOWLEDGE, "DUPS_OK_ACKNOWLEDGE");
+	}
 
 	protected static boolean durable;	
 	/**
@@ -69,10 +79,9 @@ public abstract class AbstractJMSProvider implements JMSProvider {
 				Config.logger.log(Level.WARNING,"Time out (to={0}) must be at least 0", timeOut);
 			}
 				
-			int am = Config.parms.getInt("am");
-			if ((am != Session.AUTO_ACKNOWLEDGE) && (am != Session.DUPS_OK_ACKNOWLEDGE) && (am != Session.CLIENT_ACKNOWLEDGE)) {
-				Config.logger.log(Level.WARNING, "Acknowledgement (am={0}) must be one of \n{1} for Auto\n{2} for DupsOK\n{3} for Client\n", new Object[] {am, Session.AUTO_ACKNOWLEDGE, Session.DUPS_OK_ACKNOWLEDGE, Session.CLIENT_ACKNOWLEDGE} );
-			}
+//			if ((am != Session.AUTO_ACKNOWLEDGE) && (am != Session.DUPS_OK_ACKNOWLEDGE) && (am != Session.CLIENT_ACKNOWLEDGE) && (am != 100)) {
+//				Config.logger.log(Level.WARNING, "Acknowledgement (am={0}) must be one of \n{1} for Auto\n{2} for DupsOK\n{3} for Client\n", new Object[] {am, Session.AUTO_ACKNOWLEDGE, Session.DUPS_OK_ACKNOWLEDGE, Session.CLIENT_ACKNOWLEDGE} );
+//			}
 			
 			if ( Config.parms.getString("pw").length()!=0 && Config.parms.getString("us").length()==0 ) {
 				Config.logger.warning("Cannot specify -pw without -us");
@@ -91,6 +100,17 @@ public abstract class AbstractJMSProvider implements JMSProvider {
 			 * Config.registerAnother( Config.parms.<JMSProvider>getClazz("pc") );
 			 */
 			Config.registerAnother( Config.parms.getClazz("pc") );
+			
+			int am = Config.parms.getInt("am");
+			if(!acknowledgeTypes.containsKey(am)){
+				String s1="";
+				for (Map.Entry<Integer, String> entry : acknowledgeTypes.entrySet()) {
+				    Integer key = entry.getKey();
+				    String value = entry.getValue();
+				    s1 = s1 + key + " for " + value + "\n";
+				}
+				Config.logger.log(Level.WARNING,"Acknowledgement (-am " + am + ") must be one of \n" + s1);
+			}
 		}
 		
 	}
@@ -118,7 +138,36 @@ public abstract class AbstractJMSProvider implements JMSProvider {
 		}
 		return instance;
 	}
+	
+	/**
+	 * Add a non-standard JMS acknowledgement mode (some implementors, like QPID allow this). This must be called in the getConfig
+	 * method of an implementor.
+	 * @param modeCode
+	 * @param modeName
+	 */
+	public static void addAcknowlegeMode(int modeCode, String modeName){
+		if(acknowledgeTypes.containsKey(modeCode)){
+			Log.logger.log( Level.SEVERE, "Cannot add JMS acknowledge mode " + modeName + " (" + modeCode + ") as this clashes with an exsting standard JMS acknowledge mode.");
+		} else {
+			acknowledgeTypes.put(modeCode,modeName);
+		}
+	}
 
+	/**
+	 * Can be called in the getConfig method of an implementor to remove an unsupported acknowledgement mode.
+	 * @param modeCode
+	 */
+	public static boolean removeAcknowlegeMode(int modeCode){
+		if(!acknowledgeTypes.containsKey(modeCode)){
+			//Mode doesn't exist - this isn't necessarily a problem - we'll let the caller decide.
+			return false;
+		} else {
+			acknowledgeTypes.remove(modeCode);
+			return true;
+		}
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see com.ibm.uk.hursley.perfharness.jms.providers.JMSProvider#getQueueConnection(javax.jms.QueueConnectionFactory)
 	 */

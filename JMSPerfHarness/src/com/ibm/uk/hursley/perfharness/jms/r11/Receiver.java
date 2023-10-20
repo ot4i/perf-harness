@@ -67,6 +67,7 @@ public class Receiver extends JMS11WorkerThread implements WorkerThread.Paceable
 	 * @see com.ibm.uk.hursley.perfharness.WorkerThread.Paceable#oneIteration()
 	 */
 	public boolean oneIteration() throws Exception {
+		startResponseTimePeriod();
 		if( (inMessage=messageConsumer.receive( timeout ))!=null ) {
 			if ( transacted && (getIterations()+1)%commitCount==0 ) session.commit();
 			incIterations();

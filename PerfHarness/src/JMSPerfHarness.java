@@ -40,7 +40,6 @@ public final class JMSPerfHarness {
 
 		Config.init( args, null );
 		ControlThread.registerConfig();
-		
 		ControlThread ct;
 		try {
 			ct = ControlThread.getInstance();

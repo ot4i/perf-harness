@@ -151,6 +151,7 @@ public final class HTTPGetURL extends WorkerThread {
 	    Scanner scanner = new Scanner(connection.getInputStream());
 	    scanner.useDelimiter(END_OF_INPUT);
 	    result = scanner.next();
+            scanner.close();
 	    return result;
 	  }
 	
