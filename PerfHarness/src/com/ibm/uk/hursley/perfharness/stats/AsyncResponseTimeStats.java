@@ -27,7 +27,7 @@ import com.ibm.uk.hursley.perfharness.WorkerThread;
  * This statistics module reports response times.
  * 
  */
-public class ResponseTimeStats extends Statistics {
+public class AsyncResponseTimeStats extends Statistics {
 
 	@SuppressWarnings("unused")
 	private static final String c = Copyright.COPYRIGHT;
@@ -45,11 +45,11 @@ public class ResponseTimeStats extends Statistics {
 	 */
 	public static void registerConfig() {
 
-		Config.registerSelf( ResponseTimeStats.class );		
+		Config.registerSelf( AsyncResponseTimeStats.class );		
 		
 	}
 	
-	public ResponseTimeStats(ControlThread parent) {
+	public AsyncResponseTimeStats(ControlThread parent) {
 		
 		super(parent);
 		if ( interval>0 ) {
@@ -80,46 +80,48 @@ public class ResponseTimeStats extends Statistics {
 		int diff;
 		
 		long totalTime = 0;
+
+		int totalUnknownMessages = 0;
+		int totalTimeouts = 0;
+		int totalResponses = 0;
+
 		
-		// comment these out to avoid printing per-thread data
-		if ( do_perThread ) sb.append(" (");
-		
+		long minTime = -1;
+		long maxTime = -1;
+
 		int shortest = curr.length<prev.length?curr.length:prev.length;
 		for (int j = 0; j < shortest; j++) {
 			diff = curr[j] - prev[j];
 			total += diff;
-			
 			long tTotalTime = totalResponseTime[j];
-
-			if ( do_perThread ) {
-				sb.append(diff);
-				if (diff > 0) {
-					sb.append(","+tTotalTime/diff+"(micros)");
-				}
-				sb.append("\t");
-			}
-
 			totalTime = totalTime + totalResponseTime[j];
+
+			diff = currUnknownMessages[j] - prevUnknownMessages[j];
+			totalUnknownMessages += diff;
+			diff = currTimeouts[j] - prevTimeouts[j];
+			totalTimeouts += diff;
+			diff = currResponses[j] - prevResponses[j];
+			totalResponses += diff;
+
+			if ( maxTime < maxResponseTime[j] )
+				maxTime = maxResponseTime[j];
+			if ( ( (minTime == -1) || (minTime > minResponseTime[j]) ) && (minResponseTime[j] > 0) )
+				minTime = minResponseTime[j];
 		}
 
 		// Add on new threads
 		for (int j = shortest; j<curr.length; j++ ) {
-			
 			total += curr[j];
-
 			long tTotalTime = totalResponseTime[j];
-			
-			if ( do_perThread ) {
-				sb.append(curr[j]);
-				if (total > 0) {
-					sb.append(","+tTotalTime/total+"(micros)");
-				}
-				sb.append("\t");
-			}
-			
 			totalTime = totalTime + totalResponseTime[j];
+			totalUnknownMessages += currUnknownMessages[j];
+			totalTimeouts += currTimeouts[j];
+			totalResponses += currResponses[j];
+			if ( maxTime < maxResponseTime[j] )
+				maxTime = maxResponseTime[j];
+			if ( ( (minTime == -1) || (minTime > minResponseTime[j]) ) && (minResponseTime[j] > 0) )
+				minTime = minResponseTime[j];
 		}
-		if ( do_perThread ) sb.append(") ");
 		
 		long period = (currMeasurementTime-prevMeasurementTime);
 		// If within 0.5% of expected value
@@ -129,20 +131,28 @@ public class ResponseTimeStats extends Statistics {
 		}
 		
 		sb.append("tps=").append(numberFormat.format((double) (total*1000) / period));
-		sb.append(",avgResponse(micros)");
+		sb.append(",min/max/avg response(micros)");
 
-		if (total > 0) {
-			sb.append("=").append(totalTime/total);
+		if (totalResponses > 0) {
+			sb.append("=").append(minTime);
+			sb.append("/").append(maxTime);
+			sb.append("/").append(totalTime/totalResponses);
 		}
+		else {
+			sb.append("=NA/NA/NA");
+		}
+
 		sb.append(",threads=").append( parent.getRunningWorkers() );
-		
+		sb.append(",totalResponses=").append(totalResponses);
+		sb.append(",totalUnknownMessages=").append(totalUnknownMessages);
+		sb.append(",totalTimeouts=").append(totalTimeouts);
 	}
 
 	public void printFinalSummary() {
 		
 		boolean time_to_last_fire = Config.parms.getString( "sd" ).toLowerCase().equals( Statistics.STATS_TLF );
 
-	    long minOverallResponseTime = 999999999;
+		long minOverallResponseTime = 999999999;
 		long maxOverallResponseTime = 0;
 		long totalOverallResponseTime = 0;
 		long minTime = 999999999;
@@ -153,6 +163,9 @@ public class ResponseTimeStats extends Statistics {
 		double totalDuration = 0;
 		double totalRate = 0;
 		int counted = 0;
+		long totalResponses= 0;
+		long totalUnknownMessages = 0;
+		long totalTimeouts = 0;
 		
 		DecimalFormat df = new DecimalFormat("#.0");
 		
@@ -189,7 +202,25 @@ public class ResponseTimeStats extends Statistics {
 				if ( trimTime!=0 ) {
 					iterations -= trimValues[ workers.indexOf( worker ) ];
 				}
+
+				long responses = worker.getResponses();
 				
+				if ( trimTime!=0 ) {
+					responses -= trimValues[ workers.indexOf( worker ) ];
+				}
+
+				long unknownMessages = worker.getUnknownMessages();
+				
+				if ( trimTime!=0 ) {
+					unknownMessages -= trimValues[ workers.indexOf( worker ) ];
+				}
+				
+				long timeouts = worker.getTimeouts();
+				
+				if ( trimTime!=0 ) {
+					timeouts -= trimValues[ workers.indexOf( worker ) ];
+				}
+
 				long duration = threadEndTime-threadStartTime;
 				double rate = (double) (iterations * 1000) / duration;
 			
@@ -218,13 +249,13 @@ public class ResponseTimeStats extends Statistics {
 				// Add data to entry
 				sb.append(pad(worker.getThreadNum()));
 				sb.append(pad(iterations));
-				sb.append(pad(df.format(duration/(1000))));
+				sb.append(pad(df.format(duration/(1000.0))));
 				sb.append(pad(df.format(rate)));
 				sb.append("|");
-				sb.append(pad(totalTime/iterations));				
+				sb = (responses == 0)? sb.append(pad("N/A")) : sb.append(pad(totalTime/responses));				
 				sb = (minTime == 999999999)? sb.append(pad("N/A")) : sb.append(pad(minTime));
 				sb = (maxTime == 0)? sb.append(pad("N/A")) : sb.append(pad(maxTime));				
-				sb.append(pad(df.format(stdDev)));
+				//sb.append(pad(df.format(stdDev)));
 				sb.append("|");
 				
 				workerStats.add(sb);
@@ -233,31 +264,40 @@ public class ResponseTimeStats extends Statistics {
 				totalIterations += iterations;
 				totalDuration += duration;
 				totalRate += rate;
+
+		 		totalResponses += responses;
+		 		totalUnknownMessages += unknownMessages;
+		 		totalTimeouts += timeouts;
+
 				counted++;
 
 			} // end while workers
 			 			
    			System.out.println("==================");
-   			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
-   			System.out.println("                                                                                |                                 ResponseTimes                                  |");
-			System.out.println(pad("Thread Number") + pad("Iterations") + pad("Duration") + pad("Average MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") + pad("Standard Deviation") + "|");
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
+   			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
+   			System.out.println("                                                                                |                        ResponseTimes                       |");
+			System.out.println(pad("Thread Number") + pad("Iterations") + pad("Duration") + pad("Average MsgPerSec") + "|"+ pad("Average") + pad("Minimum") + pad("Maximum") /*+ pad("Standard Deviation")*/ + "|");
+			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
    			
 			for(StringBuilder sb : workerStats) {
    				System.out.println(sb.toString());
    			}
 			
-			System.out.println("--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|");
+			System.out.println("--------------------------------------------------------------------------------|------------------------------------------------------------|");
 			System.out.println(pad("OVERALL:") +
 					pad(totalIterations) +
 					pad(numberFormat.format(totalDuration/(1000*counted))) +
 					pad(numberFormat.format(totalRate)) +
 					"|" +
-					pad("" + totalOverallResponseTime/totalIterations) +
+					(( totalResponses == 0)? pad("N/A") : pad("" + totalOverallResponseTime/totalResponses)) +
 					pad("" + minOverallResponseTime) +
-					pad("" + maxOverallResponseTime) +
-					pad("---"));
+					pad("" + maxOverallResponseTime));// +
+					//pad("---"));
 			
+			System.out.println("\ntotalIterations=" + totalIterations +
+							   ",totalResponses="+totalResponses +
+							   ",totalUnknownMessages="+totalUnknownMessages+
+							   ",totalTimeouts="+totalTimeouts);
 		} // end if su
 		
 	} // end printFinalSummary

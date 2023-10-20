@@ -68,7 +68,7 @@
 
 		<!-- First compile the Perfharness classes -->
        	<mkdir dir="${dest.dir}" />		
-    	<javac includeantruntime="false" srcdir="${src.dir}"	destdir="${dest.dir}">
+    	<javac includeantruntime="false" srcdir="${src.dir}"	destdir="${dest.dir}" target="1.8" source="1.8">
         	<classpath refid="build-classpath"/>
 		</javac>
 		
@@ -204,7 +204,7 @@
 					unless="@{module}.exists" />
 				<!-- delete dir="../@{module}/${dest.dir}" / -->
 				<mkdir dir="../@{module}/${dest.dir}" />
-				<javac includeantruntime="false" srcdir="../@{module}/src" destdir="../@{module}/bin">
+				<javac includeantruntime="false" srcdir="../@{module}/src" destdir="../@{module}/bin"  target="1.8" source="1.8">
 					<classpath refid="build-classpath"/>
 				</javac>
 

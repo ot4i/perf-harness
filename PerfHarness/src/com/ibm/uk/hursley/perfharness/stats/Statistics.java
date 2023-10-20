@@ -30,21 +30,25 @@ public abstract class Statistics {
 	private class allThreadsData {
 		
 		private int[]  iterations;
-		//private long[] minResponseTimes;
-		//private long[] maxResponseTimes;
+		private long[] minResponseTimes;
+		private long[] maxResponseTimes;
 		private long[] totalResponseTimes;
 		//private double[] responseTimeStdDev;
+		private int[]  responses;
+		private int[]  unknownMessages;
+		private int[]  timeouts;
 		private int size = 0;
 		
+
 		public void setIterationValue(int index, int value) {
 			iterations[index] = value;
 		}
-		//public void setMinResponseTimeValue(int index, long value) {
-		//	minResponseTimes[index] = value;
-		//}
-		//public void setMaxResponseTimeValue(int index, long value) {
-		//	maxResponseTimes[index] = value;
-		//}
+		public void setMinResponseTimeValue(int index, long value) {
+			minResponseTimes[index] = value;
+		}
+		public void setMaxResponseTimeValue(int index, long value) {
+			maxResponseTimes[index] = value;
+		}
 		public void setTotalResponseTimesValue(int index, long value) {
 			totalResponseTimes[index] = value;
 		}
@@ -53,12 +57,25 @@ public abstract class Statistics {
 		//	responseTimeStdDev[index] = value;
 		//}
 		
+		public void setResponsesValue(int index, int value) {
+			responses[index] = value;
+		}
+		public void setUnknownMessagesValue(int index, int value) {
+			unknownMessages[index] = value;
+		}
+		public void setTimeoutsValue(int index, int value) {
+			timeouts[index] = value;
+		}
+
 		public void setSize(int newSize) {
 			iterations = new int[newSize];
-			//minResponseTimes = new long[newSize];
-			//maxResponseTimes = new long[newSize];
+			minResponseTimes = new long[newSize];
+			maxResponseTimes = new long[newSize];
 			totalResponseTimes = new long[newSize];
-			responseTimeStdDev = new double[newSize];
+			//responseTimeStdDev = new double[newSize];
+			responses = new int[newSize];
+			unknownMessages = new int[newSize];
+			timeouts = new int[newSize];
 			size = newSize;
 		}
 		public int getSize() {
@@ -67,27 +84,45 @@ public abstract class Statistics {
 		public void setIterations(int[] iterations) {
 			this.iterations = iterations;
 			size = iterations.length;
-			//minResponseTimes = new long[size];
-			//maxResponseTimes = new long[size];
+			minResponseTimes = new long[size];
+			maxResponseTimes = new long[size];
 			totalResponseTimes = new long[size];
-			responseTimeStdDev = new double[size];
+			//responseTimeStdDev = new double[size];
 		}
 		public int[] getIterations() {
 			return iterations;
 		}
-		//public long[] getMinResponseTime() {
-		//	return minResponseTimes;
-		//}
-		//public long[] getMaxResponseTime() {
-		//	return maxResponseTimes;
-		//}
+		public long[] getMinResponseTime() {
+			return minResponseTimes;
+		}
+		public long[] getMaxResponseTime() {
+			return maxResponseTimes;
+		}
 		public long[] getTotalResponseTimes() {
 			return totalResponseTimes;
 		}
-		public double[] getResponseTimeStdDev() {
-			return responseTimeStdDev;
-		}
+		//public double[] getResponseTimeStdDev() {
+		//	return responseTimeStdDev;
+		//}
 		
+		public void setResponses(int[] responses) {
+			this.responses = responses;
+		}
+		public int[] getResponses() {
+			return responses;
+		}
+		public void setUnknownMessages(int[] unknownMessages) {
+			this.unknownMessages = unknownMessages;
+		}
+		public int[] getUnknownMessages() {
+			return unknownMessages;
+		}
+		public void setTimeouts(int[] timeouts) {
+			this.timeouts = timeouts;
+		}
+		public int[] getTimeouts() {
+			return timeouts;
+		}
 	}
 
 	@SuppressWarnings("unused")
@@ -135,6 +170,17 @@ public abstract class Statistics {
 	protected long prevMeasurementTime;
 	protected long currMeasurementTime;
 	
+
+
+
+	// various counts from this and previous measurement
+	protected int[] prevResponses = new int[0];
+	protected int[] currResponses = new int[0];
+	protected int[] prevUnknownMessages = new int[0];
+	protected int[] currUnknownMessages = new int[0];
+	protected int[] prevTimeouts = new int[0];
+	protected int[] currTimeouts = new int[0];
+
 	protected ArrayList<WorkerThread> workers = null;
 	protected ControlThread parent = null;
 	
@@ -199,26 +245,47 @@ public abstract class Statistics {
 			if ( prev.length==curr.length ) {
 				// If lengths match, copy entries
 				System.arraycopy( curr, 0, prev,0, prev.length );
+				System.arraycopy( currResponses, 0, prevResponses,0, prevResponses.length );
+				System.arraycopy( currUnknownMessages, 0, prevUnknownMessages,0, prevUnknownMessages.length );
+				System.arraycopy( currTimeouts, 0, prevTimeouts,0, prevTimeouts.length );
 				// Possibly (probably) re-use current array as well
 				allThreadsData data = new allThreadsData();
 				data.setIterations(curr);
+				data.setResponses(currResponses);
+				data.setUnknownMessages(currUnknownMessages);
+				data.setTimeouts(currTimeouts);
+
 				data = readValues( data );
+
 				curr = data.getIterations();
-				//minResponseTime = data.getMinResponseTime();
-				//maxResponseTime = data.getMaxResponseTime();
+				currResponses = data.getResponses();
+				currUnknownMessages = data.getUnknownMessages();
+				currTimeouts = data.getTimeouts();
+				minResponseTime = data.getMinResponseTime();
+				maxResponseTime = data.getMaxResponseTime();
 				totalResponseTime = data.getTotalResponseTimes();
-				responseTimeStdDev = data.getResponseTimeStdDev();
+				//responseTimeStdDev = data.getResponseTimeStdDev();
 			} else {
 				// array is not the same size, we allocate a new array object.
 				prev = curr;
+				prevResponses = currResponses;
+				prevUnknownMessages = currUnknownMessages;
+				prevTimeouts = currTimeouts;
 				allThreadsData data = new allThreadsData();
 				data.setIterations(curr);
+				data.setResponses(currResponses);
+				data.setUnknownMessages(currUnknownMessages);
+				data.setTimeouts(currTimeouts);
+
 				data = readValues( (allThreadsData)null );
 				curr = data.getIterations();
-				//minResponseTime = data.getMinResponseTime();
-				//maxResponseTime = data.getMaxResponseTime();
+				currResponses = data.getResponses();
+				currUnknownMessages = data.getUnknownMessages();
+				currTimeouts = data.getTimeouts();
+				minResponseTime = data.getMinResponseTime();
+				maxResponseTime = data.getMaxResponseTime();
 				totalResponseTime = data.getTotalResponseTimes();
-				responseTimeStdDev = data.getResponseTimeStdDev();
+				//responseTimeStdDev = data.getResponseTimeStdDev();
 			}
 			
 			prevMeasurementTime = currMeasurementTime;
@@ -259,10 +326,13 @@ public abstract class Statistics {
 				WorkerThread worker = (WorkerThread) iter.next();
 				int index = i++;
 				values.setIterationValue(index, worker.getIterations());
-				//values.setMinResponseTimeValue(index, worker.resetMinTime());
-				//values.setMaxResponseTimeValue(index, worker.resetMaxTime());
+				values.setMinResponseTimeValue(index, worker.resetMinTime());
+				values.setMaxResponseTimeValue(index, worker.resetMaxTime());
 				values.setTotalResponseTimesValue(index, worker.resetTotalTime());
 				//values.setResponseTimeStdDevValue(index, worker.resetResponseTimeStdDev());
+				values.setResponsesValue(index, worker.getResponses());
+				values.setUnknownMessagesValue(index, worker.getUnknownMessages());
+				values.setTimeoutsValue(index, worker.getTimeouts());
 			}
 			
 		} // end sync

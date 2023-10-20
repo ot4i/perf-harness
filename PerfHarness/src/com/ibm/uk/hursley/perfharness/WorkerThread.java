@@ -43,6 +43,14 @@ public abstract class WorkerThread extends java.lang.Thread {
 	private final AtomicLong    minTime = new AtomicLong(999999999); 
 	private final AtomicLong    maxTime = new AtomicLong(0); 
 	private final AtomicLong    totalTime = new AtomicLong(0); 
+	// Used by RequestorAsync to count received messages (iterations counts sent messages)
+	private final AtomicInteger responses = new AtomicInteger(0);
+	// Used by RequestorAsync to track missing messages
+	private final AtomicInteger unknownMessages = new AtomicInteger(0);
+	private final AtomicInteger timeouts        = new AtomicInteger(0);
+
+	private long   overallMinTime = 0; 
+	private long   overallMaxTime = 0; 
 	private long   overallTotalTime = 0; 
 	private double overallM2 = 0; 
 	
@@ -170,7 +178,12 @@ public abstract class WorkerThread extends java.lang.Thread {
 		super.start();
 	}
 
-	protected final int incIterations() {
+
+	protected final int incIterations(){
+		return incIterations(true);
+	}
+
+	protected final int incIterations(boolean doStatistics) {
 		// The following was measured as 1.6x faster than incrementAndGet (on a
 		// single-core x86). This only works because this method can only be
 		// called by its owning thread.
@@ -178,7 +191,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 		iterations.set(val);
 
 		// Only record if tracking response times
-		if (transactionResponseStats) {
+		if (transactionResponseStats && doStatistics) {
 			// Check if response time period completed, if not end it now
 			if (responseTimeStarted) {
 				responseEndTime = System.nanoTime();
@@ -207,6 +220,44 @@ public abstract class WorkerThread extends java.lang.Thread {
 		return val;
 	}
 
+
+
+	protected final int incResponses(long asyncResponseStartTime, long asyncResponseEndTime) {
+		// The following was measured as 1.6x faster than incrementAndGet (on a
+		// single-core x86). This only works because this method can only be
+		// called by its owning thread.
+		final int val = responses.get() + 1;
+		responses.set(val);
+
+		long asyncResponseTime = (asyncResponseEndTime - asyncResponseStartTime) / 1000;
+		// Update the best response time for this thread
+		minTime(asyncResponseTime);
+		// Update the worst response time for this thread
+		maxTime(asyncResponseTime);
+		// Update the total response time for this thread
+		totalTime(asyncResponseTime);
+
+		// calculate online variance
+		onlineVarianceDelta = asyncResponseTime - onlineVarianceMean;
+		onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)responses.get());
+		onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(asyncResponseTime-onlineVarianceMean);
+		overallM2 = onlineVarianceM2;
+
+		return val;
+	}
+
+	protected final int incUnknownMessages() {
+		final int val = unknownMessages.get() + 1;
+		unknownMessages.set(val);
+		return val;
+	}
+
+	protected final int incTimeouts() {
+		final int val = timeouts.get() + 1;
+		timeouts.set(val);
+		return val;
+	}
+
 	protected final void startResponseTimePeriod() {
 		// Only record if tracking response times
 		if (transactionResponseStats) {
@@ -225,14 +276,23 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	protected final void minTime(long time) {
 		previousTime = minTime.get();
-		if (time < previousTime)
+		if ( (time < previousTime) || (previousTime <= 0) )
 			minTime.set(time);
+
+		// This is safe because only one thread will be accessing overallMinTime
+		if ( (time < overallMinTime) || (overallMinTime <= 0) ) {
+			overallMinTime = time;
+		}			
 	}
 
 	protected final void maxTime(long time) {
 		previousTime = maxTime.get();
 		if (time > previousTime) {
 			maxTime.set( time );
+		}
+		// This is safe because only one thread will be accessing overallMaxTime
+		if (time > overallMaxTime) {
+			overallMaxTime = time;
 		}
 	}
 
@@ -243,7 +303,11 @@ public abstract class WorkerThread extends java.lang.Thread {
 	}
 
 	public final double getResponseTimeStdDev() {
-		if (iterations.get() > 1) {
+		if (responses.get() > 1) {
+			final double variance = onlineVarianceM2 / (responses.get() - 1);
+			return Math.sqrt(variance);
+		}
+		else if (iterations.get() > 1) {
 			final double variance = onlineVarianceM2 / (iterations.get() - 1);
 			return Math.sqrt(variance);
 		} else {
@@ -254,21 +318,43 @@ public abstract class WorkerThread extends java.lang.Thread {
 	public final long getMinTime() {
 		return minTime.get();
 	}
-
+	public final long getOverallMinTime() {
+		return overallMinTime;
+	}
 	public final long getOverallTotalTime() {
 		return overallTotalTime;
 	}
-
 	public final long getMaxTime() {
 		return maxTime.get();
 	}
-
+	public final long getOverallMaxTime() {
+		return overallMaxTime;
+	}
 	public final long resetTotalTime() {
 		return totalTime.getAndSet(0);
 	}
 
+	public final long resetMinTime() {
+		return minTime.getAndSet(0);
+	}
+	public final long resetMaxTime() {
+		return maxTime.getAndSet(0);
+	}
+
 	public final int getIterations() {
 		return iterations.get();
+	}
+
+	public final int getResponses() {
+		return responses.get();
+	}
+
+	public final int getUnknownMessages() {
+		return unknownMessages.get();
+	}
+
+	public final int getTimeouts() {
+		return timeouts.get();
 	}
 
 	public long getStartTime() {
@@ -309,7 +395,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 		return threadnum;
 	}
 
-	private static final long TIME_PRECISION = 1000000000; // nanos	
+	protected static final long TIME_PRECISION = 1000000000; // nanos	
 	
 	/**
 	 * Only a class that implements the Paceable interface can be used here. If
@@ -461,7 +547,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 
 	private long windowbase = 0;
 	private long windowcount = 0;
-	private static final long WINDOWSIZE = 4 * TIME_PRECISION;
+	protected static long WINDOWSIZE = 4 * TIME_PRECISION;
 
 	/**
 	 * Tries to sleep intelligently base upon the requested delay period. The
@@ -492,6 +578,7 @@ public abstract class WorkerThread extends java.lang.Thread {
 		if (sleep > 0) {
 			final int sleepNanos = (int)(sleep % 1000000);
 			final long sleepMillis = (long)((sleep - sleepNanos)* (1000.0 / TIME_PRECISION));
+			//System.out.println("Now: " + now + " windowposition: " + windowposition + " windowbase: " + windowbase + " sleepNanos: " + sleepNanos + " sleepMillis: " + sleepMillis);
 			Thread.sleep(sleepMillis, sleepNanos);
 		}
 		return now;

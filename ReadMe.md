@@ -101,6 +101,8 @@ MQ (using IBM MQ classes for Java) Requestor:
 
 ```java -ms512M -mx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc mqjava.Requestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -ws 1 -dn 1 -mf <yourInputFile> -jh localhost -jp 1414 -jb CSIM  -jc SYSTEM.BKR.CONFIG -iq CSIM_SERVER_IN_Q -oq CSIM_COMMON_REPLY_Q```
 
+See [MQJavaPerfHarness/README.md](MQJavaPerfHarness/README.md) for more details.
+
 HTTP Requestor:
 
 ```java -ms512M -mx512M -cp /PerfHarness/perfharness.jar JMSPerfHarness -tc http.HTTPRequestor -nt 1 -ss 5 -sc BasicStats -wi 10 -to 3000 -rl 60 -sh false -ws 1 -dn 1 -mf MyInputMessage.xml -jh localhost -jp 7800 -ur "requestinout"```
