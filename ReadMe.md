@@ -6,7 +6,7 @@ Perfharness is a flexible and modular Java package for performance testing of HT
 The top level folders in the repository are Eclipse projects. 
 * Download the repository zip file and extract into a temporary directory.  
 * Import the projects using the Import Wizard selecting "Existing Projects into Workspace". 
-* Select the 5 projects and make sure "Copy projects to workspace" is ticked when importing.
+* Select the 6 projects and make sure "Copy projects to workspace" is ticked when importing.
 
 This should result in you having a workspace with the following projects:
 
