@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/PerfHarness"/>
 	<classpathentry kind="lib" path="lib/mqlight-api-1.0.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/com.ibm.mq.allclient.jar"/>
-	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_8/jms.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/com.ibm.mq.allclient.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/jms.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import com.ibm.uk.hursley.perfharness.stats.ResponseTimeStats;
-import com.sun.jndi.toolkit.ctx.AtomicDirContext;
 
 /**
  * Base class for all varieties of test.  This class implements a several variations
@@ -44,7 +43,6 @@ public abstract class WorkerThread extends java.lang.Thread {
 	private final AtomicLong    maxTime = new AtomicLong(0); 
 	private final AtomicLong    totalTime = new AtomicLong(0); 
 	private long   overallTotalTime = 0; 
-	private double overallM2 = 0; 
 	
 	private final boolean transactionResponseStats = Config.isRegistered(ResponseTimeStats.class);
 
@@ -198,7 +196,6 @@ public abstract class WorkerThread extends java.lang.Thread {
 			onlineVarianceDelta = responseTime - onlineVarianceMean;
 			onlineVarianceMean = onlineVarianceMean + (onlineVarianceDelta/(double)iterations.get());
 			onlineVarianceM2 = onlineVarianceM2 + onlineVarianceDelta*(responseTime-onlineVarianceMean);
-			overallM2 = onlineVarianceM2;
 
 			responseTime = 0;
 			responseStartTime = 0;
