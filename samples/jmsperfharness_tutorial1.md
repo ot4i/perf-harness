@@ -75,7 +75,7 @@ Required by the QPID JMS provider module and included in the Apache Qpid JMS lib
 
 \* The first 2 jars are included in the IBM MQ JMS and Java redistributable client, which can be obtained from: https://ibm.biz/mq93clients Select IBM-MQC-Redist-Java from the list of downloads presented.  
 †The Qpid jar is contained in the Apache Qpid client download, which can be obtained here: https://qpid.apache.org/components/jms/index.html
-The Qpid provider in JMSPerfHarness is based on javax.jms. Qpid JMS 0.61.0 is the latest version to support that.
+The Qpid provider in JMSPerfHarness is based on javax.jms. Qpid JMS 1.21.0 is the latest version to support that. If you just take the last version Qpid JMS 2.0+, you will find it uses the Jakarta messaging APIs (JMS 3.0) and wont yet work with PerfHarness.
 
 If you only intend to use the WebSphereMQ JMS provider, you can omit the Qpid Jar and ignore the source errors in QPID.java. The project will still build ok. 
 
