@@ -79,7 +79,7 @@ public final class HTTPPostURL extends WorkerThread {
 			Boolean auth = Config.parms.getBoolean("au");
 			String authStringEnc = DatatypeConverter.printBase64Binary(authString.getBytes("UTF-8"));
 			
-			if (auth != false) {
+			if (auth.booleanValue() != false) {
 				Log.logger.log(Level.INFO, "Auth string: " + authString);
 				Log.logger.log(Level.INFO, "Base64 encoded auth string: " + authStringEnc);
 			}
@@ -152,7 +152,7 @@ public final class HTTPPostURL extends WorkerThread {
 		try {
 			HttpURLConnection connection = (HttpURLConnection) fURL.openConnection();
 			connection.setRequestMethod("POST");
-			if (auth != false) {
+			if (auth.booleanValue() != false) {
 				connection.setRequestProperty("Authorization", "Basic " + authStringEnc);
 			}
 			connection.setDoInput(true);
