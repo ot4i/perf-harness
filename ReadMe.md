@@ -48,14 +48,7 @@ See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ
 
 ## AMQP Channel Module Pre-reqs
 
-Additional Pre-reqs for AMQP Channel Module
-
-* The Java AMQP Client required by this module can be download from 
-https://developer.ibm.com/messaging/ibm-mq-light-downloads and selecting "Download from Maven Central".
-Refer to the AMQP Client READ.md as further pre-reqs jars are required.
-
-* The allclient.jar is required from the a MQ V9.0 installation.
-* Copy all of the pre-req jars into /lib of the AMQPPerfharness.
+This module has now been removed from PerfHarness as its dependent mq-light module is no longer available. To run PerfHarness using the AMQP protocol, please see the newly added QPID provider module.
 
 ## Running Perfharness within Eclipse
 
