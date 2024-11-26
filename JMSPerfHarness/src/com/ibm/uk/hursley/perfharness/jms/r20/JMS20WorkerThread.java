@@ -122,16 +122,7 @@ public abstract class JMS20WorkerThread extends WorkerThread {
     protected JMS20WorkerThread(String name) {
 		super(name);
 		try {
-			
-			/*
-			 * TODO: Java 8 support target type inference, so when moving to Java 8 can
-			 * replace the following lines with:
-			 * destFactory = Config.parms.<DestinationFactory>getClazz("df").newInstance();
-			 */
-			//Determine if a non default DestinationFactory is in use, this describes the naming philosophy of the destinations
-			//within our test
-			final Class<?> dfClazz = Config.parms.getClazz("df");
-			destFactory = (DestinationFactory) dfClazz.newInstance();
+			destFactory = Config.parms.<DestinationFactory>getClazz("df").newInstance();
 			
 			//Cache message factory
 			msgFactory = DefaultMessageFactory.getInstance();
@@ -226,7 +217,7 @@ public abstract class JMS20WorkerThread extends WorkerThread {
        	// If we are going to unsubscribe
        	if ((durableSubscriberName != null) && !reconnecting && (context != null) && (Config.parms.getBoolean("un"))) {
        		// note that we dont want to unsubscribe in disconnect cases
-       		Log.logger.log(Level.FINE, "Unsubscribing {0}",durableSubscriberName );
+       		Log.logger.log(Level.FINE, "Unsubscribing {0}", durableSubscriberName);
            	try {
 				context.unsubscribe(durableSubscriberName);
 			} catch (JMSRuntimeException jmsre) {
