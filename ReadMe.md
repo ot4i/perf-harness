@@ -14,7 +14,7 @@ This should result in you having a workspace with the following projects:
 
 ## Importing Prereqs into Eclipse
 
-Building Perfharness in Eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires WebSphere MQ8, MQJavaPerfHarness requires WebSphere MQ7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs
+Building Perfharness in Eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires WebSphere MQ V8 (or above), MQJavaPerfHarness requires WebSphere MQ7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs.
 
 * IBM_WMQ_7: 
     * com.ibm.mq.commonservices.jar
