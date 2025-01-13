@@ -138,10 +138,10 @@ public abstract class JMS20WorkerThread extends WorkerThread {
         
         if (transacted) {
         	Log.logger.log(Level.FINE, "Using Transacted Mode");
-        	masterContext = ((JMSContext) cf).createContext(JMSContext.SESSION_TRANSACTED);
+        	masterContext = (JMSContext) cf.createContext(JMSContext.SESSION_TRANSACTED);
         } else {
         	Log.logger.log(Level.FINE, "Using Acknowledge Mode {0}", ackMode);
-        	masterContext = ((JMSContext) cf).createContext(ackMode);
+        	masterContext = (JMSContext) cf.createContext(ackMode);
         }
     	
     	connectionInitialised = true;
