@@ -74,9 +74,9 @@ Click "Run"
 
 There are 4 scripts which can be used to compile Perfharness.jar depending on whether you want all the capability or a specific one. The 4 scripts are:
 
-* Perfharness/build_HTTP.xml - Used for building only the http & tcpip modules.
-* Perfharness/build_JMS.xml - Used for building the JMSMQ module.
-* Perfharness/build_JakartaJMS.xml - Used for building the JakartaJMS module.
+* Perfharness/build_HTTP.xml - Used for building only the http modules.
+* Perfharness/build_JMS.xml - Used for building the JMS module.
+* Perfharness/build_JakartaJMS.xml - Used for building the Jakarta JMS module.
 * Perfharness/build_MQ.xml - Used for building the MQ module.
 
 To compile perfharness.jar right click the the appropriate .xml file and select "Run As" then "1 Ant Build". 
