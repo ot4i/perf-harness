@@ -52,6 +52,10 @@ See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ
 
 This module has now been removed from PerfHarness as its dependent mq-light module is no longer available. To run PerfHarness using the AMQP protocol, please see the newly added QPID provider module.
 
+## JakartaJMS Module
+
+This module is identical to the JMS Module, but has been configured to use the Jakarta JMS interfaces found in MQ from V9.3. Building this module on its own will produce a jakartajmsperfharness.jar. It will build against the jakarta.jms-api.jar and com.ibm.mq.jakarta.client.jar from the PerfHarnessPreReqs module. Your application can still use JMS 1.1 or JMS 2.0 API, but an application can use only one of the Jakarta interfaces or the javax JMS interfaces. Ensure you set the correct environment paths when running the application to find the appropriate libraries. MQ provides options to crtmqenv and setmqenv (-j 3.0) to assist with this.
+
 ## Running Perfharness within Eclipse
 
 Once you have imported the pre-reqs you are ready to run within Eclipse or compile the jar for using on other machines. If you would like to run perfharness create a new Run Configuration for a Java application. Generally we would recommend running from Eclipse for functional and setup testing but for real performance testing using the jar from the command-line on a server.
