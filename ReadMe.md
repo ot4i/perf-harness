@@ -6,7 +6,7 @@ Perfharness is a flexible and modular Java package for performance testing of HT
 The top level folders in the repository are Eclipse projects. 
 * Download the repository zip file and extract into a temporary directory.  
 * Import the projects using the Import Wizard selecting "Existing Projects into Workspace". 
-* Select the 6 projects and make sure "Copy projects to workspace" is ticked when importing.
+* Select all of the projects and make sure "Copy projects to workspace" is ticked when importing.
 
 This should result in you having a workspace with the following projects:
 
@@ -14,7 +14,7 @@ This should result in you having a workspace with the following projects:
 
 ## Importing Prereqs into Eclipse
 
-Building Perfharness in Eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires WebSphere MQ V8 (or above), MQJavaPerfHarness requires WebSphere MQ7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs.
+Building Perfharness in Eclipse requires some extra dependancies importing to the workspace. Depending on the modules you would like to build please import the following files into the PerfHarnessPrereqs project, these files are either available on the web from Apache or from the respective product installations. JMSPerfharness requires MQ V8 (or above), JakartaJMSPerfHarness requires MQ V9.3 (or above), MQJavaPerfHarness requires MQ V7 (or above) and the Perfharness and HTTPPerfharness modules have no prereqs.
 
 * IBM_WMQ_7: 
     * com.ibm.mq.commonservices.jar
@@ -42,6 +42,8 @@ Building Perfharness in Eclipse requires some extra dependancies importing to th
 * IBM_WMQ_9: 
     * jms.jar
     * com.ibm.mq.allclient.jar
+    * jakarta.jms-api.jar (only if building JakartaJMSPerfHarness)
+    * com.ibm.mq.jakarta.client.jar (only if building JakartaJMSPerfHarness)
 
 See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ V9: [Developing JMS and Java applications](https://www.ibm.com/support/knowledgecenter/SSFKSJ_9.0.0/com.ibm.mq.dev.doc/q118320_.html)
 
@@ -72,9 +74,9 @@ Click "Run"
 
 There are 4 scripts which can be used to compile Perfharness.jar depending on whether you want all the capability or a specific one. The 4 scripts are:
 
-* Perfharness/build_all.xml - Used for building the whole package.
-* Perfharness/build_HTTP&TCPIP.xml - Used for building only the http & tcpip modules.
+* Perfharness/build_HTTP.xml - Used for building only the http & tcpip modules.
 * Perfharness/build_JMS.xml - Used for building the JMSMQ module.
+* Perfharness/build_JakartaJMS.xml - Used for building the JakartaJMS module.
 * Perfharness/build_MQ.xml - Used for building the MQ module.
 
 To compile perfharness.jar right click the the appropriate .xml file and select "Run As" then "1 Ant Build". 
