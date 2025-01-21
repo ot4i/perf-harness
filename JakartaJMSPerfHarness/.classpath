@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/PerfHarness"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/com.ibm.mq.jakarta.client.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/IBM_WMQ_9/jakarta.jms-api.jar"/>
+	<classpathentry kind="lib" path="/PerfHarnessPrereqs/QPID_JMS/qpid-jms-client-1.12.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

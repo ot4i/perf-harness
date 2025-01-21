@@ -13,10 +13,8 @@
 	<!-- This is used to name the various generated files -->
 	<property name="short.name" value="perfharness" />
 
-	<!-- Include all modules -->
-	<property name="include.jms" value="true" />
-	<property name="include.mq" value="true" />
-	<property name="include.http" value="true" />
+	<!-- Only include jms additional module (PerfHarness is always included) -->
+	<property name="include.jakartajms" value="true" />
 
 	<!-- This is the name by which the packaged code will identify itself -->
 	<property name="copyright.name" value="PerfHarness" />
@@ -24,7 +22,6 @@
 	<property name="copyright.version" value="1.0.1" />
 	
 	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
-	<property name="perfharness.dir" location="../PerfHarness" />	
+	<property name="perfharness.dir" location="../PerfHarness" />
 	<import file="${perfharness.dir}/ant-perfharness-common.xml" />
-	
 </project>

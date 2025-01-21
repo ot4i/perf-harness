@@ -16,11 +16,13 @@
 		<!-- Any of the following values can be overriden by settings placed before the <import>
 		 in the lead project -->
 		<property name="jms.module" value="JMSPerfHarness" />
+		<property name="jakartajms.module" value="JakartaJMSPerfHarness" />
 		<property name="mq.module" value="MQJavaPerfHarness" />
 		<property name="http.module" value="HTTPPerfHarness" />
 		<property name="perf.module" value="PerfHarness" />
 				
 		<property name="include.jms" value="false" />
+		<property name="include.jakartajms" value="false" />		
 		<property name="include.mq" value="false" />
 		<property name="include.http" value="false" />
 		
@@ -73,16 +75,19 @@
 		</javac>
 		
 		<verifymodule if:true="${include.jms}" module="${jms.module}" />
+		<verifymodule if:true="${include.jakartajms}" module="${jakartajms.module}" />
 		<verifymodule if:true="${include.mq}" module="${mq.module}" />
 		<verifymodule if:true="${include.http}" module="${http.module}" />
 		<verifymodule module="${perf.module}" />
 
 		<buildmodule if:true="${include.jms}" module="${jms.module}" />
+		<buildmodule if:true="${include.jakartajms}" module="${jakartajms.module}" />		
 		<buildmodule if:true="${include.mq}" module="${mq.module}" />
 		<buildmodule if:true="${include.http}" module="${http.module}" />
 		<buildmodule module="${perf.module}" />
 		
 		<deletejarmodule if:true="${include.jms}" module="${jms.module}" />
+		<deletejarmodule if:true="${include.jakartajms}" module="${jakartajms.module}" />
 		<deletejarmodule if:true="${include.mq}" module="${mq.module}" />
 		<deletejarmodule if:true="${include.http}" module="${http.module}" />
 		<deletejarmodule module="${perf.module}" />
@@ -275,6 +280,7 @@ build.id=${bld.id}
 		<initjar jar="${jar.file}" />
 		
 		<jarmodule if:true="${include.jms}" jar="${jar.file}" module="${jms.module}" />
+		<jarmodule if:true="${include.jakartajms}" jar="${jar.file}" module="${jakartajms.module}" />
 		<jarmodule if:true="${include.mq}" jar="${jar.file}" module="${mq.module}" />
 		<jarmodule if:true="${include.http}" jar="${jar.file}" module="${http.module}" />
 		<jarmodule jar="${jar.file}" module="${perf.module}" />

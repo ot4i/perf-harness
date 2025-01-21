@@ -8,15 +8,15 @@
 * US Government Users Restricted Rights - Use, duplication, or
 * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
 ********************************************************** {COPYRIGHT-END} -->
-<project name="jmsperfharness" default="jar" basedir=".">
+<project name="jakartajmsperfharness" default="jar" basedir=".">
 	<!-- This is used to name the various generated files -->
 	<property name="short.name" value="${ant.project.name}" />
 
 	<!-- Only include jms additional module (PerfHarness is always included) -->
-	<property name="include.jms" value="true" />
+	<property name="include.jakartajms" value="true" />
 
 	<!-- This is the name by which the packaged code will identify itself -->
-		<property name="copyright.name" value="IBM Performance Harness for JMS" />	
+		<property name="copyright.name" value="IBM Performance Harness for Jakarta JMS" />	
 
 	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
 	<property name="perfharness.dir" location="../PerfHarness" />
