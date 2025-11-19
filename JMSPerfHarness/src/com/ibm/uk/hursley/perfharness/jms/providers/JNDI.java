@@ -265,7 +265,7 @@ public class JNDI extends AbstractJMSProvider {
 			boolean useSunJRE = Config.parms.getBoolean("iz");
 			if (useSunJRE) {
 				System.out.println("Using Suns JRE - Setting ORB initialisation string");
-				env.put("java.naming.corba.orb", org.omg.CORBA.ORB.init((String[]) null, null));
+				//env.put("java.naming.corba.orb", org.omg.CORBA.ORB.init((String[]) null, null));
 				//The alternative can also be tried if the above doesnt work with JRE in use
 				//The IBM JRE will automatically find the correct ORB, so do not set this param
 				//env.put("com.ibm.CORBA.ORBInit", "com.ibm.ws.sib.client.ORB");

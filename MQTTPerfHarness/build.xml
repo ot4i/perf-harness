@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- ***************************************************** {COPYRIGHT-TOP} ***
+* Licensed Materials - Property of IBM
+* Performance Harness for Java Message Service
+*
+* (C) Copyright IBM Corp. 2005, 2006
+*
+* US Government Users Restricted Rights - Use, duplication, or
+* disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+********************************************************** {COPYRIGHT-END} -->
+<project name="mqtt31perfharness" default="jar-quick" basedir=".">
+
+	<!-- This is used to name the various generated files -->
+	<property name="short.name" value="${ant.project.name}" />
+
+	<!-- Order of modules is important - precedence is given to the left when names overlap -->
+	<!--property name="perfharness.modules" value="MQTT31PerfHarness PerfHarness" /-->
+	<property name="perfharness.modules" value="MQTT31PerfHarness" />
+
+	<!-- This is the name by which the packaged code will identify itself -->
+	<property name="copyright.name" value="IBM Performance Harness for MQTT" />
+	
+	<!-- Include standard perfharness build library.  PLEASE READ IT BEFORE RUNNING ANYTHING -->
+	<property name="perfharness.dir" location="../PerfHarness" />
+	<path id="build-classpath">   
+	    <pathelement path="../PerfHarness/${dest.dir}"/>
+	    <fileset dir=".">
+	        <include name="**/**.jar"/>
+	    </fileset>
+	    <fileset dir="../PerfHarnessPrereqs/">           
+	        <include name="**/**.jar"/>
+	    </fileset>
+	    <!-- Add MQTT Paho jar from product_specific -->
+	    <pathelement location="../MQTT31PerfHarness/product_specific/org.eclipse.paho.client.mqttv3-1.2.6.jar"/>
+	</path>
+	<import file="${perfharness.dir}/ant-perfharness-common.xml" />
+</project>

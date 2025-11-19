@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- ***************************************************** {COPYRIGHT-TOP} ***
 	* Licensed Materials - Property of IBM
 	* Performance Harness for Java Message Service
@@ -19,12 +19,14 @@
 		<property name="jakartajms.module" value="JakartaJMSPerfHarness" />
 		<property name="mq.module" value="MQJavaPerfHarness" />
 		<property name="http.module" value="HTTPPerfHarness" />
+		<property name="mqtt.module" value="MQTTPerfHarness" />
 		<property name="perf.module" value="PerfHarness" />
 				
 		<property name="include.jms" value="false" />
 		<property name="include.jakartajms" value="false" />		
 		<property name="include.mq" value="false" />
 		<property name="include.http" value="false" />
+		<property name="include.mqtt" value="false" />
 		
 		<property name="src.dir" value="src" />
 		<property name="dest.dir" value="bin" />
@@ -71,25 +73,33 @@
 		<!-- First compile the Perfharness classes -->
        	<mkdir dir="${dest.dir}" />		
     	<javac includeantruntime="false" srcdir="${src.dir}"	destdir="${dest.dir}">
-        	<classpath refid="build-classpath"/>
+			<classpath>
+		        <!-- Existing build path -->
+		        <path refid="build-classpath"/>
+		        <!-- Explicitly add Paho MQTT client -->
+		        <pathelement location="${basedir}/product_specific/MQTT_Clients/org.eclipse.paho.client.mqttv3-1.2.6.jar"/>
+		    </classpath>
 		</javac>
 		
 		<verifymodule if:true="${include.jms}" module="${jms.module}" />
 		<verifymodule if:true="${include.jakartajms}" module="${jakartajms.module}" />
 		<verifymodule if:true="${include.mq}" module="${mq.module}" />
 		<verifymodule if:true="${include.http}" module="${http.module}" />
+		<verifymodule if:true="${include.mqtt}" module="${mqtt.module}" />
 		<verifymodule module="${perf.module}" />
 
 		<buildmodule if:true="${include.jms}" module="${jms.module}" />
 		<buildmodule if:true="${include.jakartajms}" module="${jakartajms.module}" />		
 		<buildmodule if:true="${include.mq}" module="${mq.module}" />
 		<buildmodule if:true="${include.http}" module="${http.module}" />
+		<buildmodule if:true="${include.mqtt}" module="${mqtt.module}" />
 		<buildmodule module="${perf.module}" />
 		
 		<deletejarmodule if:true="${include.jms}" module="${jms.module}" />
 		<deletejarmodule if:true="${include.jakartajms}" module="${jakartajms.module}" />
 		<deletejarmodule if:true="${include.mq}" module="${mq.module}" />
 		<deletejarmodule if:true="${include.http}" module="${http.module}" />
+		<deletejarmodule if:true="${include.mqtt}" module="${mqtt.module}" />
 		<deletejarmodule module="${perf.module}" />
 		
 	</target>
@@ -180,11 +190,14 @@
 	<macrodef name="verifymodule">
 		<attribute name="module" />
 		<sequential>
-			<available file="../@{module}" type="dir"
-				property="@{module}.exists" />
-				<fail
-					message="@{module} cannot be found in your workspace."
-					unless="@{module}.exists" />
+			<condition property="@{module}.exists">
+	            <or>
+	                <available file="@{module}" type="dir" />
+	                <available file="../@{module}" type="dir" />
+	            </or>
+	        </condition>
+	        <fail message="@{module} cannot be found in your workspace."
+	              unless="@{module}.exists" />
 		</sequential>
 	</macrodef>
 	
@@ -283,6 +296,8 @@ build.id=${bld.id}
 		<jarmodule if:true="${include.jakartajms}" jar="${jar.file}" module="${jakartajms.module}" />
 		<jarmodule if:true="${include.mq}" jar="${jar.file}" module="${mq.module}" />
 		<jarmodule if:true="${include.http}" jar="${jar.file}" module="${http.module}" />
+		<!--Add this line to include your MQTTPerfHarness classes -->
+	    <jarmodule if:true="${include.mqtt}" jar="${jar.file}" module="MQTTPerfHarness" />
 		<jarmodule jar="${jar.file}" module="${perf.module}" />
 	</target>
 
