@@ -44,6 +44,8 @@ Building Perfharness in Eclipse requires some extra dependancies importing to th
     * com.ibm.mq.allclient.jar
     * jakarta.jms-api.jar (only if building JakartaJMSPerfHarness)
     * com.ibm.mq.jakarta.client.jar (only if building JakartaJMSPerfHarness)
+ * MQTT_Clients:
+    * org.eclipse.paho.client.mqttv3-1.2.6.jar (only if building MQTT)
 
 See the MQ knowledge center for details of the IBM Classes for Java. E.g. for MQ V9: [Developing JMS and Java applications](https://www.ibm.com/support/knowledgecenter/SSFKSJ_9.0.0/com.ibm.mq.dev.doc/q118320_.html)
 
@@ -55,6 +57,10 @@ This module has now been removed from PerfHarness as its dependent mq-light modu
 ## JakartaJMS Module
 
 This module is identical to the JMS Module, but has been configured to use the Jakarta JMS interfaces found in MQ from V9.3. Building this module on its own will produce a jakartajmsperfharness.jar. It will build against the jakarta.jms-api.jar and com.ibm.mq.jakarta.client.jar from the PerfHarnessPreReqs module. Your application can still use JMS 1.1 or JMS 2.0 API, but an application can use only one of the Jakarta interfaces or the javax JMS interfaces. Ensure you set the correct environment paths when running the application to find the appropriate libraries. MQ provides options to crtmqenv and setmqenv (-j 3.0) to assist with this.
+
+## MQTT Module
+
+The MQTT module relies on the Eclipse Paho MQTT v3 client for all MQTT operations. Since this dependency cannot be distributed, users must download the Paho client jar and place it in PerfHarnessPreReqs/MQTT_Clients before building MQTTPerfHarness. Building this module will produce a perfharness_mqtt.jar, which allows running PerfHarness workloads using MQTT publishers, subscribers, and Pub/Sub patterns
 
 ## Running Perfharness within Eclipse
 
@@ -76,12 +82,13 @@ Click "Run"
 
 ## Compiling perfharness.jar within Eclipse
 
-There are 4 scripts which can be used to compile Perfharness.jar depending on whether you want all the capability or a specific one. The 4 scripts are:
+There are 5 scripts which can be used to compile Perfharness.jar depending on whether you want all the capability or a specific one. The 5 scripts are:
 
 * Perfharness/build_HTTP.xml - Used for building only the http modules.
 * Perfharness/build_JMS.xml - Used for building the JMS module.
 * Perfharness/build_JakartaJMS.xml - Used for building the Jakarta JMS module.
 * Perfharness/build_MQ.xml - Used for building the MQ module.
+* Perfharness/build_MQTT.xml - Used for building the MQTT module.
 
 To compile perfharness.jar right click the the appropriate .xml file and select "Run As" then "1 Ant Build". 
 
@@ -143,3 +150,4 @@ There is a git repo that can help develop a dockerized version of JMSPerfHarness
 ## Additional Information
 For more in-depth documentation please refer to the PerfHarness manual in the [PerfHarness/doc](./PerfHarness/doc) folder.
 A tutorial on running a JMS performance test with perfharness is available in the [PerfHarness/samples](./samples) folder [here](./samples/jmsperfharness_tutorial1.md).
+
