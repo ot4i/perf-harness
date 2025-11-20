@@ -35,7 +35,6 @@ public final class MQTTPerfHarness {
 	 * @param args The commandline.
 	 */
 	public static void main(String[] args) {
-		System.out.println("PAUL");
 		Config.init( args, ControlThread.class );
 		
 		ControlThread ct;

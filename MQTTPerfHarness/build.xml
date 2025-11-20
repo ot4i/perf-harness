@@ -8,14 +8,14 @@
 * US Government Users Restricted Rights - Use, duplication, or
 * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
 ********************************************************** {COPYRIGHT-END} -->
-<project name="mqtt31perfharness" default="jar-quick" basedir=".">
+<project name="mqttperfharness" default="jar-quick" basedir=".">
 
 	<!-- This is used to name the various generated files -->
 	<property name="short.name" value="${ant.project.name}" />
 
 	<!-- Order of modules is important - precedence is given to the left when names overlap -->
-	<!--property name="perfharness.modules" value="MQTT31PerfHarness PerfHarness" /-->
-	<property name="perfharness.modules" value="MQTT31PerfHarness" />
+	<!--property name="perfharness.modules" value="MQTTPerfHarness PerfHarness" /-->
+	<property name="perfharness.modules" value="MQTTPerfHarness" />
 
 	<!-- This is the name by which the packaged code will identify itself -->
 	<property name="copyright.name" value="IBM Performance Harness for MQTT" />
@@ -31,7 +31,7 @@
 	        <include name="**/**.jar"/>
 	    </fileset>
 	    <!-- Add MQTT Paho jar from product_specific -->
-	    <pathelement location="../MQTT31PerfHarness/product_specific/org.eclipse.paho.client.mqttv3-1.2.6.jar"/>
+	    <pathelement location="../MQTTPerfHarness/product_specific/org.eclipse.paho.client.mqttv3-1.2.6.jar"/>
 	</path>
 	<import file="${perfharness.dir}/ant-perfharness-common.xml" />
 </project>
