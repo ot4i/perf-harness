@@ -16,7 +16,7 @@
 
     <target name="clean">
         <delete dir="${bin.dir}" />
-        <delete file="${build.dir}/perfharness_mqtt.jar" />
+        <delete file="${build.dir}/mqttperfharness.jar" />
     </target>
 
     <target name="compile" depends="init">
@@ -35,13 +35,13 @@
     </target>
 
     <target name="jar" depends="compile">
-        <jar destfile="${build.dir}/perfharness_mqtt.jar" basedir="${bin.dir}">
+        <jar destfile="${build.dir}/mqttperfharness.jar" basedir="${bin.dir}">
             <manifest>
                 <attribute name="Built-By" value="Aneesha"/>
                 <attribute name="Main-Class" value="com.ibm.uk.hursley.perfharness.Launcher"/>
             </manifest>
         </jar>
-        <echo>Built ${build.dir}/perfharness_mqtt.jar successfully</echo>
+        <echo>Built ${build.dir}/mqttperfharness.jar successfully</echo>
     </target>
 
 </project>
