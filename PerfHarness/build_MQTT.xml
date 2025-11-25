@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MQTTPerfHarness" default="jar" basedir=".">
+
+    <!-- Include the shared macros and targets -->
+    <import file="ant-perfharness-common.xml"/>
+
+    <!-- Properties -->
+    <property name="module" value="MQTTPerfHarness"/>
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="bin.dir" value="../${module}/bin"/>
+    <property name="src.dir" value="src"/>
+
+    <target name="init">
+        <echo>Building module: ${module}</echo>
+    </target>
+
+    <target name="clean">
+        <delete dir="${bin.dir}" />
+        <delete file="${build.dir}/mqttperfharness.jar" />
+    </target>
+
+    <target name="compile" depends="init">
+    <mkdir dir="${bin.dir}" />
+        <javac srcdir="../${module}/src"
+               destdir="${bin.dir}"
+               includeantruntime="false"
+               debug="true">
+            <classpath>
+                <pathelement path="${build.dir}/perfharness.jar"/>
+                <fileset dir="../PerfHarnessPrereqs/">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile">
+        <jar destfile="${build.dir}/mqttperfharness.jar" basedir="${bin.dir}">
+            <manifest>
+                <attribute name="Built-By" value="Aneesha"/>
+                <attribute name="Main-Class" value="com.ibm.uk.hursley.perfharness.Launcher"/>
+            </manifest>
+        </jar>
+        <echo>Built ${build.dir}/mqttperfharness.jar successfully</echo>
+    </target>
+
+</project>
