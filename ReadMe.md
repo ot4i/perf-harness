@@ -60,7 +60,7 @@ This module is identical to the JMS Module, but has been configured to use the J
 
 ## MQTT Module
 
-The MQTT module relies on the Eclipse Paho MQTT v3 client for all MQTT operations. Since this dependency cannot be distributed, users must download the Paho client jar and place it in PerfHarnessPreReqs/MQTT_Clients before building MQTTPerfHarness. Building this module will produce a perfharness_mqtt.jar, which allows running PerfHarness workloads using MQTT publishers, subscribers, and Pub/Sub patterns
+The MQTT module relies on the Eclipse Paho MQTT v3 client for all MQTT operations. Since this dependency cannot be distributed, users must download the Paho client jar and place it in PerfHarnessPreReqs/MQTT_Clients before building MQTTPerfHarness. Building this module will produce a mqttperfharness.jar, which allows running PerfHarness workloads using MQTT publishers, subscribers, and Pub/Sub patterns
 
 ## Running Perfharness within Eclipse
 
@@ -150,4 +150,5 @@ There is a git repo that can help develop a dockerized version of JMSPerfHarness
 ## Additional Information
 For more in-depth documentation please refer to the PerfHarness manual in the [PerfHarness/doc](./PerfHarness/doc) folder.
 A tutorial on running a JMS performance test with perfharness is available in the [PerfHarness/samples](./samples) folder [here](./samples/jmsperfharness_tutorial1.md).
+
 
