@@ -119,9 +119,9 @@ You may choose the QoS level using:
 
 ## 4. Test Scenarios
 
-MQTTPerfHarness supports two primary use cases: FanOut and FanIn.
+MQTTPerfHarness supports two primary use cases: FanIn and FanOut.
 
-- **FanOut (XR → MQI/JMS):** many publishers send to one or more topics; MQ consumers subscribe to those topics.  
+- **FanIn (XR → MQI/JMS):** many XR publishers send to one or more topics; MQI/JMS consumers subscribe to those topics.
 
 This tutorial uses **one topic** (`TOPIC`) as a minimal, reproducible example. To exercise multi-topic behaviour, increase the destination range using `-dx`.
 
@@ -146,6 +146,8 @@ By default, CPH publisher threads set the -tp flag to true. That means each publ
 Set -tp false if you want a small number of publisher threads to cycle across many topics (useful for fan-out tests with large -dx).
 
 MQ/XR maps topic subscriptions to MQ destination queues (dynamic or static) — MQ delivers messages to those subscription queues, which are consumed by your MQI/JMS subscribers. There can be one or many MQI/JMS subscribers — it’s not limited to a single consumer.
+
+Adding additional subscribers will multiply the number of messages being processed. e.g., 500 publishers publishing at 1 message per second with one subscriber will result in a message rate of 500/sec. Adding a subscriber to the topic will result in a message rate of 1000/sec, as each subscriber will receive a copy of the published message.
 
 To run a single-topic example set -dx 1. To exercise multi-topic behaviour increase -dx (and optionally adjust -db to change the base index).
 
@@ -173,7 +175,7 @@ perl runjava.pl java  -Xms768M -Xmx768M JMSPerfHarness \
   -pc WebSphereMQ -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN \
   -jb PERF0 -jt mqc -jh <QM_HOST>
 
-- **FanIn (MQI/JMS → XR):** many MQI/JMS publishers send to one or more topics; XR subscribers consume from those topics.
+- **FanOut (MQI/JMS → XR):** a small number of MQI/JMS publishers send to one or more topics; many XR subscribers consume from those topics.
 
 ### When to use
 
@@ -221,7 +223,7 @@ perl runjava.pl java  -Xms768M -Xmx768M JMSPerfHarness \
 
 ### XR Subscriber (Example)
 perl runjava.pl java -Xms768M -Xmx768M MQTTPerfHarness \
-  -nt 1 -ss 10 -rl 0 -wp true -wc 50 -wt 240 -wi 20 \
+  -nt 1000 -ss 10 -rl 0 -wp true -wc 50 -wt 240 -wi 20 \
   -id 1 -qos 0 -ka 600 -cs true \
   -tc mqtt.Subscriber -d TOPIC -db 1 -dx 100000 -dn 1 \
   -iu tcp://<QM_HOST>:1883
