@@ -23,7 +23,7 @@ export CLASSPATH=$MQTT_CLASSPATH
 
 ### XR subscribers (FanIn)
 $JAVABIN $JAVA_HEAP_VALS MQTTPerfHarness -su \
-  -nt $1 -ss $stats_interval -rl 0 -wp true -wc 50 \
+  -nt 1 -ss $stats_interval -rl 0 -wp true -wc 50 \
   -wt 240 -wi 20 -id $2 \
   -qos 0 -ka 600 -cs true \
   -tc mqtt.Subscriber -ms $message_size \
