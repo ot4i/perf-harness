@@ -23,7 +23,7 @@ export CLASSPATH=$MQTT_CLASSPATH
 
 ### XR publishers (FanOut)
 $JAVABIN $JAVA_HEAP_VALS MQTTPerfHarness -su \
-  -nt $1 -ss $stats_interval -rl 0 -wp true -wc 50 \
+  -nt 1 -ss $stats_interval -rl 0 -wp true -wc 50 \
   -wt 240 -wi 20 -rt 0.04 -id $2 \
   -qos 0 -ka 600 -cs true \
   -tc mqtt.Publisher -ms $message_size \
