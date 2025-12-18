@@ -22,7 +22,7 @@ topic_name=$TOPIC_NAME
 export CLASSPATH=$MQ_CPH_CLASSPATH
 
 ### MQI → XR (FanIn) publishers
-perl runcph.pl cph -nt $1 -ms $message_size -cv false -vo 3 \
+perl runcph.pl cph -nt 1000 -ms $message_size -cv false -vo 3 \
   -wt 240 -wi 20 -rl 0 -id $2 -tx -pp \
   -tc Publisher -ss $stats_interval -to 30 \
   -d $topic_name -db 1 -dx 1 \
