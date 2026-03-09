@@ -32,6 +32,12 @@
                 </fileset>
             </classpath>
         </javac>
+        <!-- Copy properties files -->
+        <copy todir="${bin.dir}">
+        <fileset dir="../${module}/src">
+            <include name="**/*.properties"/>
+        </fileset>
+        </copy>
     </target>
 
     <target name="jar" depends="compile">

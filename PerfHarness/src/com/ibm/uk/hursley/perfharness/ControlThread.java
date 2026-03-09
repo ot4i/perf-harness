@@ -257,7 +257,7 @@ public class ControlThread extends Thread {
 							int workerCount = 0;
 							Log.logger.log(Level.FINE, "ActiveCount: " + count);
 							//Workers are already started, so shouldnt have to do any complicated retesting logic here
-							//We are only looking for at least one thread that matches the required worker class							
+							//We are only looking for at least one thread that matches the required worker class
 							if (count > 0) {
 								Thread threads[] = new Thread[count];
 								int rc = workerThreadGroup.enumerate(threads);
@@ -277,6 +277,11 @@ public class ControlThread extends Thread {
 							}
 						} //end while
 					} //end sync
+				} else {
+					// startWorkers failed - trigger shutdown
+					Log.logger.log(Level.SEVERE, "Failed to start workers - shutting down test");
+					shutdown = true;
+					throw new Exception("Worker thread startup failed");
 				} // end if startworkers
 			} // end if threadsizeloop
 
@@ -627,7 +632,16 @@ public class ControlThread extends Thread {
 
 			looptime = System.currentTimeMillis();
 
-			worker.start();			
+			try {
+				worker.start();
+			} catch (OutOfMemoryError e) {
+				Log.logger.log(Level.SEVERE,
+					"OutOfMemoryError starting WorkerThread {0}: {1}",
+					new Object[]{worker.getName(), e.getMessage()});
+				Log.logger.log(Level.SEVERE, "Exiting JVM due to OutOfMemoryError");
+				System.exit(1);
+			}
+					
 			StartingWorker sw = new StartingWorker(worker, looptime);
 			startPool.add(sw);
 
@@ -754,7 +768,16 @@ public class ControlThread extends Thread {
 				continue Itera;
 			}
 			
-			worker.start();
+			try {
+			 			worker.start();
+			} catch (OutOfMemoryError e) {
+			 			Log.logger.log(Level.SEVERE,
+			     			"OutOfMemoryError starting WorkerThread {0}: {1}",
+			     			new Object[]{worker.getName(), e.getMessage()});
+				Log.logger.log(Level.SEVERE, "Exiting JVM due to OutOfMemoryError");
+				System.exit(1);
+			}
+
 			
 			// poll thread for -wt seconds
 			

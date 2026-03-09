@@ -85,8 +85,22 @@ public final class Publisher extends MqttWorkerThread implements
 	 * @see com.ibm.uk.hursley.perfharness.WorkerThread.Paceable#oneIteration()
 	 */
 	public final boolean oneIteration() throws Exception {
-		destProducer.publish( outMessage );
-		incIterations();
-		return true;
+		// Validate connection before attempting to publish
+    if (messageConnection == null || !messageConnection.isConnected()) {
+        Log.logger.log(Level.WARNING, "Client {0} not connected, skipping iteration", connid);
+        return false; // Skip this iteration gracefully
+    }
+    
+    try {
+        destProducer.publish(outMessage);
+        incIterations();
+        return true;
+    } catch (MqttException e) {
+        if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_NOT_CONNECTED) {
+            Log.logger.log(Level.WARNING, "Lost connection during publish for {0}", connid);
+            return false; // Allow graceful handling
+        }
+        throw e; // Re-throw other exceptions
+    }
 	}
 }
