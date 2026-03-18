@@ -121,17 +121,54 @@ public abstract class MqttWorkerThread extends WorkerThread {
     protected void destroyMQTTResources(boolean reconnecting) {
     	
     	if (messageConnection != null) {
-    		if ( !reconnecting ) Log.logger.log(Level.FINE, "Closing producer {0}",messageConnection );
-    		try {
-    			messageConnection.disconnect();
-    		} catch (MqttException e) {
-    			// swallow
-    		} finally {
-    			messageConnection = null;
-    		}
-        }       	
-    	
-    	msgFactory = null;
+        if (!reconnecting) Log.logger.log(Level.FINE, "Closing connection {0}", connid);
+        
+        try {
+            // First attempt: graceful disconnect with timeout
+            if (messageConnection.isConnected()) {
+                Log.logger.log(Level.FINE, "Attempting graceful disconnect for {0}", connid);
+                messageConnection.disconnect(5000); // 5 second timeout
+                Log.logger.log(Level.FINE, "Graceful disconnect successful for {0}", connid);
+            }
+        } catch (OutOfMemoryError oome) {
+            // OutOfMemoryError during disconnect - exit immediately
+            Log.logger.log(Level.SEVERE,
+                "OutOfMemoryError during disconnect in thread {0}: {1}",
+                new Object[]{getName(), oome.getMessage()});
+            Log.logger.log(Level.SEVERE, "Exiting JVM due to OutOfMemoryError during cleanup");
+            System.exit(1);
+        } catch (MqttException e) {
+            Log.logger.log(Level.WARNING, "Graceful disconnect failed for {0}, forcing disconnect: {1}", 
+                          new Object[]{connid, e.getMessage()});
+            
+            // Second attempt: force disconnect
+            try {
+                messageConnection.disconnectForcibly(1000, 1000); // 1 sec disconnect, 1 sec quiesce
+                Log.logger.log(Level.INFO, "Force disconnect successful for {0}", connid);
+            } catch (MqttException e2) {
+                Log.logger.log(Level.SEVERE, "Force disconnect failed for {0}: {1}", 
+                              new Object[]{connid, e2.getMessage()});
+            }
+        } finally {
+            // Third attempt: close client resources
+            try {
+                if (messageConnection != null) {
+                    messageConnection.close(); // Release all resources
+                    Log.logger.log(Level.FINE, "Client resources closed for {0}", connid);
+                }
+            } catch (MqttException e) {
+                Log.logger.log(Level.WARNING, "Error closing client resources for {0}: {1}", 
+                              new Object[]{connid, e.getMessage()});
+            } finally {
+                messageConnection = null;
+            }
+        }
+    }
+    
+    // Clean up other resources
+    destProducer = null;
+    destConsumer = null;
+    msgFactory = null;
     	        
     }	
     
@@ -201,12 +238,25 @@ public abstract class MqttWorkerThread extends WorkerThread {
 	        		handleException( je );
 	        	}
 	        	
-	        } catch (Throwable e) {
-	
+				} catch (OutOfMemoryError oome) {
+				// OutOfMemoryError during MQTT connection - fail immediately
+				Log.logger.log(Level.SEVERE,
+					"OutOfMemoryError in MQTT worker thread {0}: {1}",
+					new Object[]{getName(), oome.getMessage()});
+				status |= sERROR;
+				done = true;
+				shutdown = true;
+				// Signal ControlThread to stop
+				ControlThread.signalShutdown();
+				// Exit JVM immediately to signal test framework
+				Log.logger.log(Level.SEVERE, "Exiting JVM due to OutOfMemoryError in worker thread");
+				System.exit(1);
+				} catch (Throwable e) {
+				
 				handleException( e );
-	
-	            // Clear up code carefully in fair weather or foul.	
-	        } finally {
+				
+				// Clear up code carefully in fair weather or foul.	
+				} finally {
 	        	
 	        	if ( done ) {
 	        		
