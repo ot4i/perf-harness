@@ -2,6 +2,13 @@
 
 This tutorial provides a simple way to build, configure, and run the MQTTPerfHarness workload using IBM MQ’s MQTT/XR service. It follows the same style and structure used in other PerfHarness samples, with runnable examples, clear explanations, and minimal queue manager setup.
 
+The MQTT performance harness (mqttperfharness.jar) has dependencies on additional performance framework libraries.
+Before running any MQTT tests, ensure that the following JAR files are present in the classpath:
+
+perfharness.jar
+
+jmsperfharness.jar
+
 ---
 
 ## 1. Build the MQTTPerfHarness Module
@@ -153,27 +160,26 @@ To run a single-topic example set -dx 1. To exercise multi-topic behaviour incre
 
 -qos configures delivery semantics (0,1,2) and affects how XR and MQ persist/ack messages.
 
+All required JAR files must be included in the classpath before running the MQTT performance harness.
+
+export CLASSPATH=.:perfharness.jar:jmsperfharness.jar:mqttperfharness.jar
+
+IBM MQ enables Channel Authentication (CHLAUTH) by default, which can block client connections if not configured properly.
+
+Before running MQTT tests, ensure that the MQTT channel allows client connections.
+
+ALTER CHANNEL(MQTT.CHANNEL) CHLTYPE(MQTT) MCAUSER('<user>')
+
 ### Example commands
 
 ### XR Publisher
-perl runjava.pl java  -Xms768M -Xmx768M MQTTPerfHarness \
-  -nt 1000 -ss 10 -rl 0 -wp true -wc 50 -wt 240 -wi 20 \
-  -rt 0.04 -id 5 -qos 2 -ka 600 -cs false \
-  -tc mqtt.Publisher -ms 256 -d TOPIC -db 1 -dx 1 \
-  -iu tcp://<QM_HOST>:<XR_PORT>
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" MQTTPerfHarness -su -nt 1000 -ss 10 -sc BasicStats -rl 0 -wp true -wc 50 -wt 300 -wi 20 -id 1 -qos 2 -ka 600 -cs false -tc mqtt.Publisher -ms 256 -d TOPIC -db 1 -dx 1 -iu tcp://<QM_HOST>:<XR_PORT>
 
 ### MQI Subscriber (Example)
-perl runcph.pl cph -nt 1 -ms 256 -cv false -vo 3 \
-  -wt 240 -wi 20 -rl 0 -id 1 -tx -pp \
-  -tc Subscriber -ss 10 -to 30 -d TOPIC -db 1 -dx 1 \
-  -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh <QM_HOST>
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" MQTTPerfHarness -su -nt 1 -ss 10 -sc BasicStats -rl 0 -wp true -wc 50 -wt 300 -wi 20 -id 1 -qos 2 -ka 600 -cs false -tc mqtt.Subscriber -d TOPIC -db 1 -dx 1 -iu tcp://${QM_HOST}:1883
 
 ### JMS Subscriber (Example)
-perl runjava.pl java  -Xms768M -Xmx768M JMSPerfHarness \
-  -wt 240 -wi 20 -nt 1 -ss 10 -rl 0 -wp true -wc 10 -id 1 \
-  -tc jms.r11.Subscriber -db 1 -dx 1 -d TOPIC -cc 500 \
-  -pc WebSphereMQ -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN \
-  -jb PERF0 -jt mqc -jh <QM_HOST>
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" MQTTPerfHarness -su -nt 1 -ss 10 -sc BasicStats -rl 0 -wp true -wc 50 -wt 300 -wi 20 -id 1 -qos 2 -ka 600 -cs false -tc jms.r11.Subscriber -db 1 -dx 1 -d TOPIC -cc 500 -pc WebSphereMQ -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh <QM_HOST>
 
 - **FanOut (MQI/JMS → XR):** a small number of MQI/JMS publishers send to one or more topics; many XR subscribers consume from those topics.
 
@@ -206,27 +212,13 @@ QoS (-qos) determines delivery semantics expected by the XR subscriber as messag
 ### Example commands
 
 ### MQI Publisher (Example)
-perl runcph.pl cph -vo 3 -nt 5 -ss 10 -ms 256 \
-  -wt 240 -wi 20 -rl 0 -id 1 -rt 650 \
-  -tc Publisher -d TOPIC -db 1 -dx 100000 -dn 1 -tp false \
-  -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN \
-  -jb PERF0 -jt mqc -jh <QM_HOST>
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" MQTTPerfHarness -nt 5 -ss 10 -ms 256 -wt 240 -wi 20 -rl 0 -id 1 -rt 650 -tc Publisher -d TOPIC -db 1 -dx 100000 -dn 1 -tp false -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh <QM_HOST>
 
 ### JMS Publisher (Example)
-perl runjava.pl java  -Xms768M -Xmx768M JMSPerfHarness \
-  -wt 240 -wi 20 -nt 5 -ss 10 -ms 256 -rl 0 \
-  -wp true -wc 10 -rt 650 -id 1 \
-  -tc jms.r11.Publisher -d TOPIC -mt text \
-  -db 1 -dx 100000 -dn 1 \
-  -pc WebSphereMQ -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN \
-  -jb PERF0 -jt mqc -ja 100 -jh <QM_HOST>
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" JMSPerfHarness -wt 240 -wi 20 -nt 5 -ss 10 -ms 256 -rl 0 -wp true -wc 10 -rt 650 -id 1 -tc jms.r11.Publisher -d TOPIC -mt text -db 1 -dx 100000 -dn 1 -pc WebSphereMQ -jp <LISTENER_PORT> -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -ja 100 -jh <QM_HOST>
 
 ### XR Subscriber (Example)
-perl runjava.pl java -Xms768M -Xmx768M MQTTPerfHarness \
-  -nt 1000 -ss 10 -rl 0 -wp true -wc 50 -wt 240 -wi 20 \
-  -id 1 -qos 0 -ka 600 -cs true \
-  -tc mqtt.Subscriber -d TOPIC -db 1 -dx 100000 -dn 1 \
-  -iu tcp://<QM_HOST>:1883
+java  -Xms768M -Xmx768M -cp "${CLASSPATH}" MQTTPerfHarness -su -nt 1 -ss 10 -sc BasicStats -rl 0 -wp true -wc 50 -wt 300 -wi 20 -id 1 -qos 2 -ka 600 -cs false -tc mqtt.Subscriber -d TOPIC -db 1 -dx 1 -iu tcp://${QM_HOST}:1883
 
   ---
 
@@ -252,6 +244,7 @@ Key MQTTPerfHarness parameters:
 | `-wt` | Test duration |
 | `-wi` | Warm-up time |
 | `-sc` | Stats class (e.g., `BasicStats`) |
+| `-ka` | Maximum time interval between messages sent or received |
 
 ---
 
