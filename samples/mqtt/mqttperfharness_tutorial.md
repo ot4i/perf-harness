@@ -248,3 +248,50 @@ Key MQTTPerfHarness parameters:
 
 ---
 
+## Large-Scale Performance Testing Configuration
+
+The following configuration was used for large-scale MQTT performance testing with 
+IBM MQ 9.4.5, supporting up to 100,000 concurrent MQTT clients. These settings can 
+serve as a reference for your own large-scale performance tests.
+
+### Test Scenarios
+
+We tested two primary scenarios:
+- **Fan-In**: Many MQTT publishers sending to a few MQI subscribers
+- **Fan-Out**: Few MQI publishers sending to many MQTT subscribers
+
+### XR Client JVM Configuration
+
+#### Fan-In Tests (MQTT Publishers)
+
+| Persistence | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
+|-------------|---------------|--------|----------------|---------------------|-------------|
+| Non-persistent (QoS 0) | No | 1 | 4096 | 2000 | 100,000 |
+| Semi-persistent (QoS 1) | Yes | 1 | 4096 | 3000 | 100,000 |
+| Persistent (QoS 2) | Yes | 1 | 4096 | 2000 | 100,000 |
+| Non-persistent (QoS 0) | No | 5 | 4096 | 2000 | 100,000 |
+| Semi-persistent (QoS 1) | Yes | 5 | 4096 | 2000 | 100,000 |
+| Persistent (QoS 2) | Yes | 5 | 4096 | 1500 | 100,000 |
+
+#### Fan-Out Tests (MQTT Subscribers)
+
+| Persistence | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
+|-------------|---------------|--------|----------------|---------------------|-------------|
+| Non-persistent (QoS 0) | No | 100,000 | 4096 | 2000 | 100,000 |
+| Semi-persistent (QoS 1) | Yes | 100,000 | 4096 | 2000 | 100,000 |
+| Persistent (QoS 2) | Yes | 100,000 | 4096 | 2000 | 100,000 |
+| Non-persistent (QoS 0) | No | 50,000 | 4096 | 400 | 100,000 |
+| Semi-persistent (QoS 1) | Yes | 50,000 | 4096 | 400 | 100,000 |
+| Persistent (QoS 2) | Yes | 50,000 | 4096 | 400 | 100,000 |
+
+### JVM Parameters
+
+All MQTT client JVMs were configured with these parameters:
+
+```bash
+-Xms4096m                    # Minimum heap size: 4 GB
+-Xmx4096m                    # Maximum heap size: 4 GB
+-XX:+UseG1GC                 # Use G1 garbage collector
+-XX:MaxGCPauseMillis=200     # Target max GC pause: 200ms
+-Xss256k                     # Thread stack size: 256 KB
+
