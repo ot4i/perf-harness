@@ -264,25 +264,25 @@ We tested two primary scenarios:
 
 #### Fan-In Tests (MQTT Publishers)
 
-| Persistence | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
+| QOS | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
 |-------------|---------------|--------|----------------|---------------------|-------------|
-| Non-persistent (QoS 0) | No | 1 | 4096 | 2000 | 100,000 |
-| Semi-persistent (QoS 1) | Yes | 1 | 4096 | 3000 | 100,000 |
-| Persistent (QoS 2) | Yes | 1 | 4096 | 2000 | 100,000 |
-| Non-persistent (QoS 0) | No | 5 | 4096 | 2000 | 100,000 |
-| Semi-persistent (QoS 1) | Yes | 5 | 4096 | 2000 | 100,000 |
-| Persistent (QoS 2) | Yes | 5 | 4096 | 1500 | 100,000 |
+| QoS 0 | No | 1 | 4096 | 2000 | 100,000 |
+| QoS 1 | Yes | 1 | 4096 | 3000 | 100,000 |
+| QoS 2 | Yes | 1 | 4096 | 2000 | 100,000 |
+| QoS 0 | No | 5 | 4096 | 2000 | 100,000 |
+| QoS 1 | Yes | 5 | 4096 | 2000 | 100,000 |
+| QoS 2 | Yes | 5 | 4096 | 1500 | 100,000 |
 
 #### Fan-Out Tests (MQTT Subscribers)
 
-| Persistence | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
+| QOS | Transactional | Topics | Java Heap (MB) | Max Threads per JVM | Max Clients |
 |-------------|---------------|--------|----------------|---------------------|-------------|
-| Non-persistent (QoS 0) | No | 100,000 | 4096 | 2000 | 100,000 |
-| Semi-persistent (QoS 1) | Yes | 100,000 | 4096 | 2000 | 100,000 |
-| Persistent (QoS 2) | Yes | 100,000 | 4096 | 2000 | 100,000 |
-| Non-persistent (QoS 0) | No | 50,000 | 4096 | 400 | 100,000 |
-| Semi-persistent (QoS 1) | Yes | 50,000 | 4096 | 400 | 100,000 |
-| Persistent (QoS 2) | Yes | 50,000 | 4096 | 400 | 100,000 |
+| QoS 0 | No | 100,000 | 4096 | 2000 | 100,000 |
+| QoS 1 | Yes | 100,000 | 4096 | 2000 | 100,000 |
+| QoS 2 | Yes | 100,000 | 4096 | 2000 | 100,000 |
+| QoS 0 | No | 50,000 | 4096 | 400 | 100,000 |
+| QoS 1 | Yes | 50,000 | 4096 | 400 | 100,000 |
+| QoS 2 | Yes | 50,000 | 4096 | 400 | 100,000 |
 
 ### JVM Parameters
 
