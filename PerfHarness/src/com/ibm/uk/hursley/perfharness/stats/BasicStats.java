@@ -100,7 +100,7 @@ public class BasicStats extends Statistics {
 		}
 
 		updateValues();
-		int total = 0;
+		long total = 0;
 		int diff;
 		// comment these out to avoid printing per-thread data
 		if ( do_perThread ) sb.append(" (");

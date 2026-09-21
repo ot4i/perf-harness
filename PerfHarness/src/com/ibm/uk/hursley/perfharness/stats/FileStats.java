@@ -125,7 +125,7 @@ public class FileStats extends Statistics {
 			sb.append("id=").append(do_id).append(",");
 		}
 		updateValues();
-		int total = 0;
+		long total = 0;
 		int diff;
 		
 		int shortest = curr.length<prev.length?curr.length:prev.length;

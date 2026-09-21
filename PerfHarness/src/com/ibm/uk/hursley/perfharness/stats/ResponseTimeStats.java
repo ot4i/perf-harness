@@ -76,7 +76,7 @@ public class ResponseTimeStats extends Statistics {
 		}
 
 		updateValues();
-		int total = 0;
+		long total = 0;
 		int diff;
 		
 		long totalTime = 0;
